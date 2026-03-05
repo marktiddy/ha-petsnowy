@@ -15,10 +15,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from petsnowy import Fault
-
-from . import PetSnowyConfigEntry
 from petsnowy.purifier import PurifierFault
 
+from . import PetSnowyConfigEntry
 from .const import (
     DEVICE_TYPE_FEEDER,
     DEVICE_TYPE_LITTERBOX,
