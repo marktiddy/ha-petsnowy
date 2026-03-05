@@ -55,7 +55,7 @@ module = [
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["petsnowy.*"]
+module = ["petsnowy", "petsnowy.*"]
 ignore_missing_imports = true
 follow_imports = "skip"
 

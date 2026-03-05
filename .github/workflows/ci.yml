@@ -20,7 +20,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: pip install black isort flake8 flake8-bugbear flake8-comprehensions
       - run: black --check custom_components/ tests/
-      - run: isort --check-only --profile black custom_components/ tests/
+      - run: isort --check-only --settings-path pyproject.toml custom_components/ tests/
       - run: flake8 custom_components/ --max-line-length 120 --max-complexity 15
 
   test:
@@ -31,12 +31,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install Poetry
-        run: pip install poetry
       - name: Install dependencies
-        run: poetry install --no-interaction
+        run: pip install pytest pytest-asyncio homeassistant "petsnowy @ git+https://github.com/hypercubian/petsnowy-py.git@v0.1.0"
       - name: Run unit tests
-        run: poetry run pytest tests/unit/ -v
+        run: pytest tests/unit/ -v
 
   typecheck:
     name: Type check
