@@ -4,18 +4,29 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000?style=for-the-badge)](https://github.com/psf/black)
 [![Type checked: mypy](https://img.shields.io/badge/type%20checked-mypy-blue?style=for-the-badge)](https://mypy-lang.org/)
 
-# PetSnowy for Home Assistant
+<p align="center">
+  <img src="images/logo.png" alt="PetSnowy" width="200">
+</p>
 
-Custom [Home Assistant](https://www.home-assistant.io/) integration for local-network control of [PetSnowy](https://www.petsnowy.com/) smart pet devices via the Tuya protocol. No cloud dependency — all communication stays on your LAN.
+<h1 align="center">PetSnowy for Home Assistant</h1>
+
+<p align="center">
+  Custom <a href="https://www.home-assistant.io/">Home Assistant</a> integration for local-network control of <a href="https://www.petsnowy.com/">PetSnowy</a> smart pet devices via the Tuya protocol.<br>
+  No cloud dependency — all communication stays on your LAN.
+</p>
+
+---
 
 ## Supported Devices
 
-| Device | Model | Entities |
-|--------|-------|----------|
-| **Snow+ Litterbox** | PS-001 | Cat weight, excretion stats, filter life, status, auto-clean, sleep mode, light, child lock, auto-deodorize, clean delay, manual clean/deodorize/empty, fault alerts |
-| **Water Fountain** | PS-010 | Filter days, pump time, power, light, work mode, filter reminder, reset filter/pump |
-| **Air Purifier** | — | TVOC, filter days, countdown timer, power, ionizer, mode, fan speed, auto-off, fault alerts |
-| **Pet Feeder** | PS-020 | Food status, cover sensor, quick feed |
+| Device | Product Name | Model | Protocol | Description |
+|--------|-------------|-------|----------|-------------|
+| **Self-Cleaning Litter Box** | SNOW+ Automatic Self-Cleaning Litter Box | PS-001 | 3.4 | Smart litter box with auto-clean, deodorization, cat weight tracking, and safety sensors |
+| **Water Fountain** | SNOW+ Automatic Pet Water Fountain | PS-010 | 3.3 | Filtered water fountain with normal/night modes and pump monitoring |
+| **Air Purifier** | PETSNOWY Pet Air Purifier | — | 3.4 | TVOC-sensing air purifier with 6-speed fan, ionizer, and auto-off timer |
+| **Pet Feeder** | SNOW+ Automatic Pet Feeder | PS-020 | 3.3 | Automatic feeder with food level detection and on-demand dispensing |
+
+> **Note:** The OilClear A.I Series Wireless Weight-Sensing Pet Fountain is a newer model and is not yet supported. Contributions welcome!
 
 ## Installation
 
@@ -58,7 +69,7 @@ Follow the wizard prompts — you'll need a [Tuya IoT Platform](https://iot.tuya
 
 ## Entities
 
-### Litterbox (PS-001)
+### SNOW+ Self-Cleaning Litter Box (PS-001)
 
 | Platform | Entities |
 |----------|----------|
@@ -68,7 +79,7 @@ Follow the wizard prompts — you'll need a [Tuya IoT Platform](https://iot.tuya
 | **Button** | Clean, deodorize, empty litter, cancel empty, pause, resume, reset filter, calibrate weight |
 | **Number** | Clean delay (2–60 min, step 2) |
 
-### Water Fountain (PS-010)
+### SNOW+ Water Fountain (PS-010)
 
 | Platform | Entities |
 |----------|----------|
@@ -78,7 +89,7 @@ Follow the wizard prompts — you'll need a [Tuya IoT Platform](https://iot.tuya
 | **Number** | Filter reminder (0–90 days) |
 | **Select** | Work mode (normal/night) |
 
-### Air Purifier
+### PETSNOWY Air Purifier
 
 | Platform | Entities |
 |----------|----------|
@@ -87,7 +98,7 @@ Follow the wizard prompts — you'll need a [Tuya IoT Platform](https://iot.tuya
 | **Switch** | Power, ionizer |
 | **Select** | Mode (auto/sleep), fan speed (1–6), auto-off countdown (off/1h–5h) |
 
-### Pet Feeder (PS-020)
+### SNOW+ Pet Feeder (PS-020)
 
 | Platform | Entities |
 |----------|----------|
