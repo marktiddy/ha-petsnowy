@@ -27,10 +27,18 @@
   },
   "entity": {
     "sensor": {
-      "cat_weight": { "name": "Cat weight" },
-      "excretion_count_today": { "name": "Excretion count today" },
-      "excretion_duration_today": { "name": "Excretion duration today" },
-      "filter_days_remaining": { "name": "Filter days remaining" },
+      "cat_weight": {
+        "name": "Cat weight"
+      },
+      "excretion_count_today": {
+        "name": "Excretion count today"
+      },
+      "excretion_duration_today": {
+        "name": "Excretion duration today"
+      },
+      "filter_days_remaining": {
+        "name": "Filter days remaining"
+      },
       "litterbox_status": {
         "name": "Status",
         "state": {
@@ -40,10 +48,18 @@
           "sleep": "Sleep"
         }
       },
-      "filter_days": { "name": "Filter days" },
-      "pump_time": { "name": "Pump cleaning days" },
-      "tvoc": { "name": "TVOC" },
-      "countdown_left": { "name": "Countdown remaining" },
+      "filter_days": {
+        "name": "Filter days"
+      },
+      "pump_time": {
+        "name": "Pump cleaning days"
+      },
+      "tvoc": {
+        "name": "TVOC"
+      },
+      "countdown_left": {
+        "name": "Countdown remaining"
+      },
       "food_status": {
         "name": "Food status",
         "state": {
@@ -53,43 +69,108 @@
       }
     },
     "binary_sensor": {
-      "fault_top_cover": { "name": "Top cover fault" },
-      "fault_drawer": { "name": "Drawer fault" },
-      "fault_drawer_full": { "name": "Drawer full" },
-      "fault_cat_stuck": { "name": "Cat stuck" },
-      "fault_check": { "name": "Check fault" },
-      "fault_cat_stayed_long": { "name": "Cat stayed too long" },
-      "fault_trouble_removal": { "name": "Trouble removal" },
-      "fault_hall": { "name": "Hall sensor fault" },
-      "fault_topple_over": { "name": "Toppled over" },
-      "fault_fan": { "name": "Fan fault" },
-      "fault_filter_missing": { "name": "Filter missing" },
-      "cover": { "name": "Cover" }
+      "fault_top_cover": {
+        "name": "Top cover fault"
+      },
+      "fault_drawer": {
+        "name": "Drawer fault"
+      },
+      "fault_drawer_full": {
+        "name": "Drawer full"
+      },
+      "fault_cat_stuck": {
+        "name": "Cat stuck"
+      },
+      "fault_check": {
+        "name": "Check fault"
+      },
+      "fault_cat_stayed_long": {
+        "name": "Cat stayed too long"
+      },
+      "fault_trouble_removal": {
+        "name": "Trouble removal"
+      },
+      "fault_hall": {
+        "name": "Hall sensor fault"
+      },
+      "fault_topple_over": {
+        "name": "Toppled over"
+      },
+      "fault_fan": {
+        "name": "Fan fault"
+      },
+      "fault_filter_missing": {
+        "name": "Filter missing"
+      },
+      "cover": {
+        "name": "Cover"
+      },
+      "cat_present": {
+        "name": "Cat present"
+      }
     },
     "switch": {
-      "auto_clean": { "name": "Auto clean" },
-      "sleep_mode": { "name": "Sleep mode" },
-      "light": { "name": "Indicator light" },
-      "child_lock": { "name": "Child lock" },
-      "auto_deodorize": { "name": "Auto deodorize" },
-      "power": { "name": "Power" },
-      "anion": { "name": "Ionizer" }
+      "auto_clean": {
+        "name": "Auto clean"
+      },
+      "sleep_mode": {
+        "name": "Sleep mode"
+      },
+      "light": {
+        "name": "Indicator light"
+      },
+      "child_lock": {
+        "name": "Child lock"
+      },
+      "auto_deodorize": {
+        "name": "Auto deodorize"
+      },
+      "power": {
+        "name": "Power"
+      },
+      "anion": {
+        "name": "Ionizer"
+      }
     },
     "button": {
-      "clean": { "name": "Clean" },
-      "deodorize": { "name": "Deodorize" },
-      "empty_litter": { "name": "Empty litter" },
-      "cancel_empty": { "name": "Cancel empty" },
-      "pause": { "name": "Pause" },
-      "resume": { "name": "Resume" },
-      "reset_filter": { "name": "Reset filter" },
-      "calibrate_weight": { "name": "Calibrate weight" },
-      "reset_pump": { "name": "Reset pump" },
-      "quick_feed": { "name": "Quick feed" }
+      "clean": {
+        "name": "Clean"
+      },
+      "deodorize": {
+        "name": "Deodorize"
+      },
+      "empty_litter": {
+        "name": "Empty litter"
+      },
+      "cancel_empty": {
+        "name": "Cancel empty"
+      },
+      "pause": {
+        "name": "Pause"
+      },
+      "resume": {
+        "name": "Resume"
+      },
+      "reset_filter": {
+        "name": "Reset filter"
+      },
+      "calibrate_weight": {
+        "name": "Calibrate weight"
+      },
+      "reset_pump": {
+        "name": "Reset pump"
+      },
+      "quick_feed": {
+        "name": "Quick feed"
+      }
     },
     "number": {
-      "clean_delay": { "name": "Clean delay" },
-      "filter_reminder": { "name": "Filter reminder" }
+      "clean_delay": {
+        "name": "Clean delay"
+      },
+      "filter_reminder": {
+        "name": "Filter reminder"
+      }
     },
     "select": {
       "work_mode": {
@@ -106,7 +187,9 @@
           "sleep": "Sleep"
         }
       },
-      "fan_speed": { "name": "Fan speed" },
+      "fan_speed": {
+        "name": "Fan speed"
+      },
       "countdown": {
         "name": "Auto-off countdown",
         "state": {

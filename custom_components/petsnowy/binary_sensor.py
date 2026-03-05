@@ -83,6 +83,13 @@ LITTERBOX_BINARY_SENSORS: tuple[PetSnowyBinarySensorDescription, ...] = (
         icon="mdi:alert",
         is_on_fn=lambda s: bool(s.faults & Fault.TROUBLE_REMOVAL),
     ),
+    PetSnowyBinarySensorDescription(
+        key="cat_present",
+        translation_key="cat_present",
+        device_class=BinarySensorDeviceClass.OCCUPANCY,
+        icon="mdi:cat",
+        is_on_fn=lambda s: s.cat_present,
+    ),
 )
 
 PURIFIER_BINARY_SENSORS: tuple[PetSnowyBinarySensorDescription, ...] = (
