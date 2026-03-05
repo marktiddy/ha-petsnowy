@@ -13,8 +13,8 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from petsnowy import Fault
-from petsnowy.purifier import PurifierFault
+from petsnowy import Fault  # type: ignore[attr-defined]
+from petsnowy.purifier import PurifierFault  # type: ignore[import-untyped]
 
 from . import PetSnowyConfigEntry
 from .const import (

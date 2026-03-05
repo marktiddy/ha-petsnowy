@@ -9,7 +9,7 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from petsnowy import Feeder, Fountain, PetSnowy, Purifier
+from petsnowy import Feeder, Fountain, PetSnowy, Purifier  # type: ignore[attr-defined]
 
 from .const import (
     CONF_ADDRESS,
