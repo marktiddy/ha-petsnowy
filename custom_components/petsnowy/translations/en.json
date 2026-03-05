@@ -46,7 +46,8 @@
           "cleaning": "Cleaning",
           "deodorization": "Deodorization",
           "sleep": "Sleep",
-          "pet_into": "Pet inside"
+          "pet_into": "Pet inside",
+          "wait_clean": "Waiting to clean"
         }
       },
       "filter_days": {
