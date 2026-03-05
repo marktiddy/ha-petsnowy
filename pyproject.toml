@@ -1,0 +1,75 @@
+[tool.poetry]
+name = "homeassistant-integrations"
+version = "0.1.0"
+description = "Custom Home Assistant integrations"
+license = "MIT"
+authors = []
+packages = [{include = "custom_components"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+homeassistant = "*"
+petsnowy = {git = "https://github.com/hypercubian/petsnowy-py.git", tag = "v0.1.0"}
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+pytest-asyncio = "*"
+pytest-bdd = "*"
+pytest-homeassistant-custom-component = "*"
+black = "*"
+isort = "*"
+flake8 = "*"
+flake8-bugbear = "*"
+flake8-comprehensions = "*"
+flake8-docstrings = "*"
+bandit = "*"
+mypy = "*"
+pylint = "*"
+pre-commit = "*"
+detect-secrets = "*"
+docformatter = "*"
+pyupgrade = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+python_version = "3.12"
+disallow_untyped_defs = true
+disallow_untyped_decorators = true
+disallow_any_generics = true
+warn_redundant_casts = true
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_unreachable = true
+show_error_context = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = [
+    "tinytuya.*",
+    "homeassistant.*",
+    "voluptuous.*",
+    "petsnowy.*",
+]
+ignore_missing_imports = true
+
+[tool.isort]
+profile = "black"
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B110"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+    "functional: marks tests as functional tests",
+    "bdd: marks tests as BDD tests",
+    "integration: marks tests as integration tests",
+    "slow: marks tests as slow running",
+]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

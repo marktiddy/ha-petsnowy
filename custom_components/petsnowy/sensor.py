@@ -1,0 +1,179 @@
+"""Sensor platform for PetSnowy integration."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any
+
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import UnitOfMass, UnitOfTime
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+from .const import (
+    DEVICE_TYPE_FEEDER,
+    DEVICE_TYPE_FOUNTAIN,
+    DEVICE_TYPE_LITTERBOX,
+    DEVICE_TYPE_PURIFIER,
+)
+from .coordinator import PetSnowyCoordinator
+from .entity import PetSnowyEntity
+
+
+@dataclass(frozen=True, kw_only=True)
+class PetSnowySensorDescription(SensorEntityDescription):
+    """Describe a PetSnowy sensor entity."""
+
+    value_fn: str
+
+
+LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
+    PetSnowySensorDescription(
+        key="cat_weight",
+        translation_key="cat_weight",
+        native_unit_of_measurement=UnitOfMass.GRAMS,
+        device_class=SensorDeviceClass.WEIGHT,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn="cat_weight",
+    ),
+    PetSnowySensorDescription(
+        key="excretion_count_today",
+        translation_key="excretion_count_today",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        icon="mdi:counter",
+        value_fn="excretion_count_today",
+    ),
+    PetSnowySensorDescription(
+        key="excretion_duration_today",
+        translation_key="excretion_duration_today",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        value_fn="excretion_duration_today",
+    ),
+    PetSnowySensorDescription(
+        key="filter_days_remaining",
+        translation_key="filter_days_remaining",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        icon="mdi:air-filter",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn="filter_days_remaining",
+    ),
+    PetSnowySensorDescription(
+        key="status",
+        translation_key="litterbox_status",
+        icon="mdi:state-machine",
+        device_class=SensorDeviceClass.ENUM,
+        options=["standby", "cleaning", "deodorization", "sleep"],
+        value_fn="status",
+    ),
+)
+
+FOUNTAIN_SENSORS: tuple[PetSnowySensorDescription, ...] = (
+    PetSnowySensorDescription(
+        key="filter_days",
+        translation_key="filter_days",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        icon="mdi:air-filter",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn="filter_days",
+    ),
+    PetSnowySensorDescription(
+        key="pump_time",
+        translation_key="pump_time",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        icon="mdi:pump",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn="pump_time",
+    ),
+)
+
+PURIFIER_SENSORS: tuple[PetSnowySensorDescription, ...] = (
+    PetSnowySensorDescription(
+        key="tvoc",
+        translation_key="tvoc",
+        native_unit_of_measurement="µg/m³",
+        device_class=SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn="tvoc",
+    ),
+    PetSnowySensorDescription(
+        key="purifier_filter_days",
+        translation_key="filter_days",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        icon="mdi:air-filter",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn="filter_days",
+    ),
+    PetSnowySensorDescription(
+        key="countdown_left",
+        translation_key="countdown_left",
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn="countdown_left",
+    ),
+)
+
+FEEDER_SENSORS: tuple[PetSnowySensorDescription, ...] = (
+    PetSnowySensorDescription(
+        key="food_status",
+        translation_key="food_status",
+        icon="mdi:food-drumstick",
+        device_class=SensorDeviceClass.ENUM,
+        options=["enough", "insufficient"],
+        value_fn="food_status",
+    ),
+)
+
+_SENSORS_BY_TYPE: dict[str, tuple[PetSnowySensorDescription, ...]] = {
+    DEVICE_TYPE_LITTERBOX: LITTERBOX_SENSORS,
+    DEVICE_TYPE_FOUNTAIN: FOUNTAIN_SENSORS,
+    DEVICE_TYPE_PURIFIER: PURIFIER_SENSORS,
+    DEVICE_TYPE_FEEDER: FEEDER_SENSORS,
+}
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up PetSnowy sensor entities."""
+    coordinator: PetSnowyCoordinator = entry.runtime_data
+    descriptions = _SENSORS_BY_TYPE.get(coordinator.device_type, ())
+    async_add_entities(
+        PetSnowySensor(coordinator, desc) for desc in descriptions
+    )
+
+
+class PetSnowySensor(PetSnowyEntity, SensorEntity):
+    """Representation of a PetSnowy sensor."""
+
+    entity_description: PetSnowySensorDescription
+
+    def __init__(
+        self,
+        coordinator: PetSnowyCoordinator,
+        description: PetSnowySensorDescription,
+    ) -> None:
+        super().__init__(coordinator, description.key)
+        self.entity_description = description
+
+    @property
+    def native_value(self) -> Any:
+        """Return the sensor value."""
+        state = self.coordinator.data
+        if state is None:
+            return None
+        value = getattr(state, self.entity_description.value_fn, None)
+        # StrEnum values need to be plain strings for HA enum sensors
+        if isinstance(value, str):
+            return str(value)
+        return value

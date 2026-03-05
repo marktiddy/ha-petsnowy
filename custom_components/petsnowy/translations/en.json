@@ -1,0 +1,123 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "PetSnowy Device Setup",
+        "data": {
+          "device_type": "Device type"
+        }
+      },
+      "device": {
+        "title": "Device Connection",
+        "description": "Enter the Tuya credentials for your PetSnowy device. You can obtain these using the tinytuya wizard.",
+        "data": {
+          "device_id": "Device ID",
+          "address": "IP address",
+          "local_key": "Local key",
+          "version": "Protocol version"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the device. Check IP address and credentials."
+    },
+    "abort": {
+      "already_configured": "This device is already configured."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "cat_weight": { "name": "Cat weight" },
+      "excretion_count_today": { "name": "Excretion count today" },
+      "excretion_duration_today": { "name": "Excretion duration today" },
+      "filter_days_remaining": { "name": "Filter days remaining" },
+      "litterbox_status": {
+        "name": "Status",
+        "state": {
+          "standby": "Standby",
+          "cleaning": "Cleaning",
+          "deodorization": "Deodorization",
+          "sleep": "Sleep"
+        }
+      },
+      "filter_days": { "name": "Filter days" },
+      "pump_time": { "name": "Pump cleaning days" },
+      "tvoc": { "name": "TVOC" },
+      "countdown_left": { "name": "Countdown remaining" },
+      "food_status": {
+        "name": "Food status",
+        "state": {
+          "enough": "Enough",
+          "insufficient": "Insufficient"
+        }
+      }
+    },
+    "binary_sensor": {
+      "fault_top_cover": { "name": "Top cover fault" },
+      "fault_drawer": { "name": "Drawer fault" },
+      "fault_drawer_full": { "name": "Drawer full" },
+      "fault_cat_stuck": { "name": "Cat stuck" },
+      "fault_check": { "name": "Check fault" },
+      "fault_cat_stayed_long": { "name": "Cat stayed too long" },
+      "fault_trouble_removal": { "name": "Trouble removal" },
+      "fault_hall": { "name": "Hall sensor fault" },
+      "fault_topple_over": { "name": "Toppled over" },
+      "fault_fan": { "name": "Fan fault" },
+      "fault_filter_missing": { "name": "Filter missing" },
+      "cover": { "name": "Cover" }
+    },
+    "switch": {
+      "auto_clean": { "name": "Auto clean" },
+      "sleep_mode": { "name": "Sleep mode" },
+      "light": { "name": "Indicator light" },
+      "child_lock": { "name": "Child lock" },
+      "auto_deodorize": { "name": "Auto deodorize" },
+      "power": { "name": "Power" },
+      "anion": { "name": "Ionizer" }
+    },
+    "button": {
+      "clean": { "name": "Clean" },
+      "deodorize": { "name": "Deodorize" },
+      "empty_litter": { "name": "Empty litter" },
+      "cancel_empty": { "name": "Cancel empty" },
+      "pause": { "name": "Pause" },
+      "resume": { "name": "Resume" },
+      "reset_filter": { "name": "Reset filter" },
+      "calibrate_weight": { "name": "Calibrate weight" },
+      "reset_pump": { "name": "Reset pump" },
+      "quick_feed": { "name": "Quick feed" }
+    },
+    "number": {
+      "clean_delay": { "name": "Clean delay" },
+      "filter_reminder": { "name": "Filter reminder" }
+    },
+    "select": {
+      "work_mode": {
+        "name": "Work mode",
+        "state": {
+          "normal": "Normal",
+          "night": "Night"
+        }
+      },
+      "purifier_mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "sleep": "Sleep"
+        }
+      },
+      "fan_speed": { "name": "Fan speed" },
+      "countdown": {
+        "name": "Auto-off countdown",
+        "state": {
+          "cancel": "Off",
+          "1h": "1 hour",
+          "2h": "2 hours",
+          "3h": "3 hours",
+          "4h": "4 hours",
+          "5h": "5 hours"
+        }
+      }
+    }
+  }
+}
