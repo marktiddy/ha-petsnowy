@@ -51,12 +51,17 @@ module = [
     "tinytuya.*",
     "homeassistant.*",
     "voluptuous.*",
-    "petsnowy.*",
 ]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["petsnowy.*"]
+ignore_missing_imports = true
+follow_imports = "skip"
+
 [tool.isort]
 profile = "black"
+known_third_party = ["petsnowy", "homeassistant", "voluptuous"]
 
 [tool.bandit]
 exclude_dirs = ["tests"]

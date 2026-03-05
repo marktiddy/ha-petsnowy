@@ -13,7 +13,6 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
 from petsnowy import Fault
 from petsnowy.purifier import PurifierFault
 

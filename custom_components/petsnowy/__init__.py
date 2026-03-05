@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TypeAlias
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
@@ -9,7 +11,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from .const import PLATFORMS
 from .coordinator import PetSnowyCoordinator
 
-type PetSnowyConfigEntry = ConfigEntry[PetSnowyCoordinator]
+PetSnowyConfigEntry: TypeAlias = ConfigEntry[PetSnowyCoordinator]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: PetSnowyConfigEntry) -> bool:
