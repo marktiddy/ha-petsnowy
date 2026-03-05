@@ -6,10 +6,10 @@ from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from . import PetSnowyConfigEntry
 from .const import (
     DEVICE_TYPE_FOUNTAIN,
     DEVICE_TYPE_LITTERBOX,
@@ -114,11 +114,11 @@ _SWITCHES_BY_TYPE: dict[str, tuple[PetSnowySwitchDescription, ...]] = {
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: PetSnowyConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up PetSnowy switch entities."""
-    coordinator: PetSnowyCoordinator = entry.runtime_data
+    coordinator = entry.runtime_data
     descriptions = _SWITCHES_BY_TYPE.get(coordinator.device_type, ())
     async_add_entities(
         PetSnowySwitch(coordinator, desc) for desc in descriptions

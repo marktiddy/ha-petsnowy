@@ -11,11 +11,12 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from petsnowy import Fault
+
+from . import PetSnowyConfigEntry
 from petsnowy.purifier import PurifierFault
 
 from .const import (
@@ -137,11 +138,11 @@ _BINARY_SENSORS_BY_TYPE: dict[
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: PetSnowyConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up PetSnowy binary sensor entities."""
-    coordinator: PetSnowyCoordinator = entry.runtime_data
+    coordinator = entry.runtime_data
     descriptions = _BINARY_SENSORS_BY_TYPE.get(coordinator.device_type, ())
     async_add_entities(
         PetSnowyBinarySensor(coordinator, desc) for desc in descriptions

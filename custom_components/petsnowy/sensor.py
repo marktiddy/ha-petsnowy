@@ -11,11 +11,11 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfMass, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from . import PetSnowyConfigEntry
 from .const import (
     DEVICE_TYPE_FEEDER,
     DEVICE_TYPE_FOUNTAIN,
@@ -142,11 +142,11 @@ _SENSORS_BY_TYPE: dict[str, tuple[PetSnowySensorDescription, ...]] = {
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: PetSnowyConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up PetSnowy sensor entities."""
-    coordinator: PetSnowyCoordinator = entry.runtime_data
+    coordinator = entry.runtime_data
     descriptions = _SENSORS_BY_TYPE.get(coordinator.device_type, ())
     async_add_entities(
         PetSnowySensor(coordinator, desc) for desc in descriptions

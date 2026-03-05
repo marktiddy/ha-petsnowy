@@ -16,13 +16,13 @@ class PetSnowyEntity(CoordinatorEntity[PetSnowyCoordinator]):
 
     def __init__(self, coordinator: PetSnowyCoordinator, key: str) -> None:
         super().__init__(coordinator)
-        device_id = coordinator.entry.data[CONF_DEVICE_ID]
+        device_id = coordinator.config_entry.data[CONF_DEVICE_ID]
         self._attr_unique_id = f"{device_id}_{key}"
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device info for the device registry."""
-        entry = self.coordinator.entry
+        entry = self.coordinator.config_entry
         device_type = entry.data[CONF_DEVICE_TYPE]
         return DeviceInfo(
             identifiers={(DOMAIN, entry.data[CONF_DEVICE_ID])},

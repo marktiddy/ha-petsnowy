@@ -5,10 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from . import PetSnowyConfigEntry
 from .const import DEVICE_TYPE_FOUNTAIN, DEVICE_TYPE_PURIFIER
 from .coordinator import PetSnowyCoordinator
 from .entity import PetSnowyEntity
@@ -68,11 +68,11 @@ _SELECTS_BY_TYPE: dict[str, tuple[PetSnowySelectDescription, ...]] = {
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: PetSnowyConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up PetSnowy select entities."""
-    coordinator: PetSnowyCoordinator = entry.runtime_data
+    coordinator = entry.runtime_data
     descriptions = _SELECTS_BY_TYPE.get(coordinator.device_type, ())
     async_add_entities(
         PetSnowySelect(coordinator, desc) for desc in descriptions

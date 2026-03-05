@@ -39,8 +39,9 @@ _DEVICE_CLASSES: dict[str, type] = {
 class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
     """Coordinator that polls a PetSnowy device for state updates."""
 
+    config_entry: ConfigEntry
+
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
-        self.entry = entry
         self.device_type: str = entry.data[CONF_DEVICE_TYPE]
 
         cls = _DEVICE_CLASSES[self.device_type]
@@ -55,6 +56,7 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
         super().__init__(
             hass,
             _LOGGER,
+            config_entry=entry,
             name=f"{DOMAIN}_{entry.data[CONF_DEVICE_ID]}",
             update_interval=timedelta(seconds=DEFAULT_SCAN_INTERVAL),
         )

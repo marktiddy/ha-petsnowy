@@ -6,11 +6,11 @@ from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.components.number import NumberEntity, NumberEntityDescription
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from . import PetSnowyConfigEntry
 from .const import DEVICE_TYPE_FOUNTAIN, DEVICE_TYPE_LITTERBOX
 from .coordinator import PetSnowyCoordinator
 from .entity import PetSnowyEntity
@@ -60,11 +60,11 @@ _NUMBERS_BY_TYPE: dict[str, tuple[PetSnowyNumberDescription, ...]] = {
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: PetSnowyConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up PetSnowy number entities."""
-    coordinator: PetSnowyCoordinator = entry.runtime_data
+    coordinator = entry.runtime_data
     descriptions = _NUMBERS_BY_TYPE.get(coordinator.device_type, ())
     async_add_entities(
         PetSnowyNumber(coordinator, desc) for desc in descriptions

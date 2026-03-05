@@ -68,3 +68,18 @@ class TestPetSnowyCoordinator:
         coordinator = PetSnowyCoordinator(hass, entry)
 
         assert "test_device_001" in coordinator.name
+
+    @patch(
+        "custom_components.petsnowy.coordinator.PetSnowy",
+        autospec=True,
+    )
+    def test_coordinator_starts_disconnected(
+        self, mock_cls: MagicMock
+    ) -> None:
+        """Coordinator starts in disconnected state."""
+        hass = MagicMock()
+        entry = self._make_entry()
+
+        coordinator = PetSnowyCoordinator(hass, entry)
+
+        assert coordinator._connected is False

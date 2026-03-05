@@ -4,7 +4,8 @@
   "codeowners": ["@hypercubian"],
   "config_flow": true,
   "documentation": "https://github.com/hypercubian/ha-petsnowy",
+  "integration_type": "device",
   "iot_class": "local_polling",
-  "requirements": ["petsnowy @ git+https://github.com/hypercubian/petsnowy-py.git@v0.1.0"],
+  "requirements": ["petsnowy==0.1.0"],
   "version": "0.1.0"
 }

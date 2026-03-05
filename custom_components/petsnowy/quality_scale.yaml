@@ -1,0 +1,52 @@
+rules:
+  # Bronze (required for core submission)
+  action-setup:
+    status: exempt
+    comment: No service actions registered.
+  appropriate-polling:
+    status: done
+    comment: 30-second polling interval for local Tuya devices.
+  brands:
+    status: todo
+    comment: Must submit to home-assistant/brands repo.
+  common-modules:
+    status: done
+    comment: coordinator.py and entity.py used.
+  config-flow:
+    status: done
+  config-flow-test-coverage:
+    status: done
+  dependency-transparency:
+    status: todo
+    comment: petsnowy must be published to PyPI.
+  docs-actions:
+    status: exempt
+    comment: No service actions.
+  docs-high-level-description:
+    status: todo
+    comment: Must submit to home-assistant.io repo.
+  docs-installation-instructions:
+    status: todo
+    comment: Must submit to home-assistant.io repo.
+  docs-removal-instructions:
+    status: todo
+    comment: Must submit to home-assistant.io repo.
+  entity-event-setup:
+    status: done
+    comment: Uses DataUpdateCoordinator pattern.
+  entity-unique-id:
+    status: done
+  has-entity-name:
+    status: done
+  runtime-data:
+    status: done
+    comment: Typed PetSnowyConfigEntry used throughout.
+  test-before-configure:
+    status: done
+    comment: Config flow validates device connection.
+  test-before-setup:
+    status: done
+    comment: ConfigEntryNotReady raised on connection failure.
+  unique-config-entry:
+    status: done
+    comment: async_set_unique_id + _abort_if_unique_id_configured.

@@ -19,6 +19,7 @@ from .const import (
     DEVICE_TYPES,
     DOMAIN,
 )
+from .coordinator import _DEVICE_CLASSES
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,9 +61,6 @@ class PetSnowyConfigFlow(ConfigFlow, domain=DOMAIN):
             version = user_input.get(
                 CONF_VERSION, DEFAULT_VERSIONS[self._device_type]
             )
-
-            # Validate connection
-            from .coordinator import _DEVICE_CLASSES
 
             cls = _DEVICE_CLASSES[self._device_type]
             device = cls(
