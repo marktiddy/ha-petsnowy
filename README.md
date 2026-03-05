@@ -46,7 +46,7 @@
 
 ### HACS (Recommended)
 
-> **Don't have HACS?** Follow the [official HACS installation guide](https://hacs.xyz/docs/use/download/download/) first.
+> **Don't have HACS?** Follow the [official HACS installation guide](https://hacs.xyz/docs/use/download/download/) first, then [activate the integration](docs/hacs-setup.md).
 
 1. Open HACS in your Home Assistant instance
 2. Go to **Integrations** > three-dot menu > **Custom repositories**
