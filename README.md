@@ -9,24 +9,19 @@
   No cloud dependency — all communication stays on your LAN.
 </p>
 
-<table align="center">
+<table align="center" border="0" cellspacing="0" cellpadding="8">
   <tr>
-    <th align="left">Project</th>
-    <th align="left">Compatibility</th>
-    <th align="left">Quality</th>
-  </tr>
-  <tr>
-    <td align="left">
+    <td>
       <a href="https://github.com/hypercubian/ha-petsnowy/releases"><img src="https://img.shields.io/github/v/release/hypercubian/ha-petsnowy?include_prereleases&style=for-the-badge" alt="Release"></a><br>
       <a href="https://github.com/hypercubian/ha-petsnowy/releases"><img src="https://img.shields.io/github/downloads/hypercubian/ha-petsnowy/total?style=for-the-badge" alt="Downloads"></a><br>
       <a href="https://github.com/hypercubian/ha-petsnowy/stargazers"><img src="https://img.shields.io/github/stars/hypercubian/ha-petsnowy?style=for-the-badge" alt="Stars"></a>
     </td>
-    <td align="left">
+    <td>
       <a href="https://hacs.xyz/"><img src="https://img.shields.io/badge/HACS-Custom-41BDF5?style=for-the-badge" alt="HACS Custom"></a><br>
       <img src="https://img.shields.io/badge/HA-%3E%3D%202024.8-41BDF5?style=for-the-badge" alt="Home Assistant 2024.8+"><br>
       <a href="LICENSE"><img src="https://img.shields.io/github/license/hypercubian/ha-petsnowy?style=for-the-badge" alt="License"></a>
     </td>
-    <td align="left">
+    <td>
       <a href="https://github.com/hypercubian/ha-petsnowy/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/hypercubian/ha-petsnowy/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI"></a><br>
       <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000?style=for-the-badge" alt="Code style: black"></a><br>
       <a href="https://mypy-lang.org/"><img src="https://img.shields.io/badge/type%20checked-mypy-blue?style=for-the-badge" alt="Type checked: mypy"></a>
