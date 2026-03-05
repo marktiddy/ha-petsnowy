@@ -13,9 +13,9 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import UnitOfMass, UnitOfTime
-from petsnowy import Notification  # type: ignore[attr-defined]
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from petsnowy import Notification  # type: ignore[attr-defined]
 
 from . import PetSnowyConfigEntry
 from .const import (
