@@ -74,9 +74,7 @@ async def async_setup_entry(
     """Set up PetSnowy select entities."""
     coordinator = entry.runtime_data
     descriptions = _SELECTS_BY_TYPE.get(coordinator.device_type, ())
-    async_add_entities(
-        PetSnowySelect(coordinator, desc) for desc in descriptions
-    )
+    async_add_entities(PetSnowySelect(coordinator, desc) for desc in descriptions)
 
 
 class PetSnowySelect(PetSnowyEntity, SelectEntity):

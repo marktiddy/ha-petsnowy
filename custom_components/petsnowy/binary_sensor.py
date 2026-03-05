@@ -127,9 +127,7 @@ FEEDER_BINARY_SENSORS: tuple[PetSnowyBinarySensorDescription, ...] = (
     ),
 )
 
-_BINARY_SENSORS_BY_TYPE: dict[
-    str, tuple[PetSnowyBinarySensorDescription, ...]
-] = {
+_BINARY_SENSORS_BY_TYPE: dict[str, tuple[PetSnowyBinarySensorDescription, ...]] = {
     DEVICE_TYPE_LITTERBOX: LITTERBOX_BINARY_SENSORS,
     DEVICE_TYPE_PURIFIER: PURIFIER_BINARY_SENSORS,
     DEVICE_TYPE_FEEDER: FEEDER_BINARY_SENSORS,
@@ -144,9 +142,7 @@ async def async_setup_entry(
     """Set up PetSnowy binary sensor entities."""
     coordinator = entry.runtime_data
     descriptions = _BINARY_SENSORS_BY_TYPE.get(coordinator.device_type, ())
-    async_add_entities(
-        PetSnowyBinarySensor(coordinator, desc) for desc in descriptions
-    )
+    async_add_entities(PetSnowyBinarySensor(coordinator, desc) for desc in descriptions)
 
 
 class PetSnowyBinarySensor(PetSnowyEntity, BinarySensorEntity):

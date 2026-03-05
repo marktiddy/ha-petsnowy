@@ -120,9 +120,7 @@ async def async_setup_entry(
     """Set up PetSnowy switch entities."""
     coordinator = entry.runtime_data
     descriptions = _SWITCHES_BY_TYPE.get(coordinator.device_type, ())
-    async_add_entities(
-        PetSnowySwitch(coordinator, desc) for desc in descriptions
-    )
+    async_add_entities(PetSnowySwitch(coordinator, desc) for desc in descriptions)
 
 
 class PetSnowySwitch(PetSnowyEntity, SwitchEntity):

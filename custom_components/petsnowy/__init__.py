@@ -12,9 +12,7 @@ from .coordinator import PetSnowyCoordinator
 type PetSnowyConfigEntry = ConfigEntry[PetSnowyCoordinator]
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: PetSnowyConfigEntry
-) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: PetSnowyConfigEntry) -> bool:
     """Set up PetSnowy from a config entry."""
     coordinator = PetSnowyCoordinator(hass, entry)
     try:
@@ -29,9 +27,7 @@ async def async_setup_entry(
     return True
 
 
-async def async_unload_entry(
-    hass: HomeAssistant, entry: PetSnowyConfigEntry
-) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: PetSnowyConfigEntry) -> bool:
     """Unload a PetSnowy config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:

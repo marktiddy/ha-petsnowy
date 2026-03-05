@@ -37,9 +37,7 @@ class TestPetSnowyCoordinator:
         "custom_components.petsnowy.coordinator.PetSnowy",
         autospec=True,
     )
-    def test_coordinator_creates_correct_device_type(
-        self, mock_cls: MagicMock
-    ) -> None:
+    def test_coordinator_creates_correct_device_type(self, mock_cls: MagicMock) -> None:
         """Coordinator instantiates the correct device class."""
         hass = MagicMock()
         entry = self._make_entry()
@@ -58,9 +56,7 @@ class TestPetSnowyCoordinator:
         "custom_components.petsnowy.coordinator.PetSnowy",
         autospec=True,
     )
-    def test_coordinator_name_includes_device_id(
-        self, mock_cls: MagicMock
-    ) -> None:
+    def test_coordinator_name_includes_device_id(self, mock_cls: MagicMock) -> None:
         """Coordinator name contains the device ID for logging."""
         hass = MagicMock()
         entry = self._make_entry()
@@ -73,9 +69,7 @@ class TestPetSnowyCoordinator:
         "custom_components.petsnowy.coordinator.PetSnowy",
         autospec=True,
     )
-    def test_coordinator_starts_disconnected(
-        self, mock_cls: MagicMock
-    ) -> None:
+    def test_coordinator_starts_disconnected(self, mock_cls: MagicMock) -> None:
         """Coordinator starts in disconnected state."""
         hass = MagicMock()
         entry = self._make_entry()

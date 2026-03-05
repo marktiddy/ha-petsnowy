@@ -58,9 +58,7 @@ class PetSnowyConfigFlow(ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(device_id)
             self._abort_if_unique_id_configured()
 
-            version = user_input.get(
-                CONF_VERSION, DEFAULT_VERSIONS[self._device_type]
-            )
+            version = user_input.get(CONF_VERSION, DEFAULT_VERSIONS[self._device_type])
 
             cls = _DEVICE_CLASSES[self._device_type]
             device = cls(

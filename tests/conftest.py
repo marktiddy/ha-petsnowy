@@ -104,9 +104,7 @@ def mock_litterbox_device() -> AsyncMock:
     from petsnowy import DeviceState
 
     device = AsyncMock()
-    device.get_state = AsyncMock(
-        return_value=DeviceState.from_dps(MOCK_LITTERBOX_DPS)
-    )
+    device.get_state = AsyncMock(return_value=DeviceState.from_dps(MOCK_LITTERBOX_DPS))
     device.connect = AsyncMock()
     device.disconnect = AsyncMock()
     return device
@@ -118,9 +116,7 @@ def mock_fountain_device() -> AsyncMock:
     from petsnowy import FountainState
 
     device = AsyncMock()
-    device.get_state = AsyncMock(
-        return_value=FountainState.from_dps(MOCK_FOUNTAIN_DPS)
-    )
+    device.get_state = AsyncMock(return_value=FountainState.from_dps(MOCK_FOUNTAIN_DPS))
     device.connect = AsyncMock()
     device.disconnect = AsyncMock()
     return device
@@ -132,9 +128,7 @@ def mock_purifier_device() -> AsyncMock:
     from petsnowy import PurifierState
 
     device = AsyncMock()
-    device.get_state = AsyncMock(
-        return_value=PurifierState.from_dps(MOCK_PURIFIER_DPS)
-    )
+    device.get_state = AsyncMock(return_value=PurifierState.from_dps(MOCK_PURIFIER_DPS))
     device.connect = AsyncMock()
     device.disconnect = AsyncMock()
     return device
@@ -146,9 +140,7 @@ def mock_feeder_device() -> AsyncMock:
     from petsnowy import FeederState
 
     device = AsyncMock()
-    device.get_state = AsyncMock(
-        return_value=FeederState.from_dps(MOCK_FEEDER_DPS)
-    )
+    device.get_state = AsyncMock(return_value=FeederState.from_dps(MOCK_FEEDER_DPS))
     device.connect = AsyncMock()
     device.disconnect = AsyncMock()
     return device
