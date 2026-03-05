@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/hypercubian/ha-petsnowy/releases"><img src="https://img.shields.io/github/v/release/hypercubian/ha-petsnowy?include_prereleases&style=for-the-badge" alt="Release"></a>
+  <a href="https://github.com/hypercubian/ha-petsnowy/releases"><img src="https://img.shields.io/github/v/release/hypercubian/ha-petsnowy?filter=*&style=for-the-badge" alt="Release"></a>
   <a href="https://github.com/hypercubian/ha-petsnowy/releases"><img src="https://img.shields.io/github/downloads/hypercubian/ha-petsnowy/total?style=for-the-badge" alt="Downloads"></a>
   <a href="https://github.com/hypercubian/ha-petsnowy/stargazers"><img src="https://img.shields.io/github/stars/hypercubian/ha-petsnowy?style=for-the-badge" alt="Stars"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/hypercubian/ha-petsnowy?style=for-the-badge&cacheSeconds=0" alt="License"></a>
