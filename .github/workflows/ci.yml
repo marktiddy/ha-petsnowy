@@ -33,11 +33,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install Poetry
         run: pip install poetry
-      - name: Configure private repo access
-        run: poetry config http-basic.github x-access-token "${{ secrets.PRIVATE_REPO_TOKEN }}"
-      - name: Install private dependency
-        run: pip install "petsnowy @ git+https://x-access-token:${{ secrets.PRIVATE_REPO_TOKEN }}@github.com/hypercubian/petsnowy-py.git@v0.1.0"
-      - name: Install remaining dependencies
+      - name: Install dependencies
         run: poetry install --no-interaction
       - name: Run unit tests
         run: poetry run pytest tests/unit/ -v
@@ -52,11 +48,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install Poetry
         run: pip install poetry
-      - name: Configure private repo access
-        run: poetry config http-basic.github x-access-token "${{ secrets.PRIVATE_REPO_TOKEN }}"
-      - name: Install private dependency
-        run: pip install "petsnowy @ git+https://x-access-token:${{ secrets.PRIVATE_REPO_TOKEN }}@github.com/hypercubian/petsnowy-py.git@v0.1.0"
-      - name: Install remaining dependencies
+      - name: Install dependencies
         run: poetry install --no-interaction
       - name: Run mypy
         run: poetry run mypy custom_components/
