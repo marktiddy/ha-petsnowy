@@ -38,6 +38,8 @@
 
 ### HACS (Recommended)
 
+> **Don't have HACS?** Follow the [official HACS installation guide](https://hacs.xyz/docs/use/download/download/) first.
+
 1. Open HACS in your Home Assistant instance
 2. Go to **Integrations** > three-dot menu > **Custom repositories**
 3. Add `https://github.com/hypercubian/ha-petsnowy` with category **Integration**
