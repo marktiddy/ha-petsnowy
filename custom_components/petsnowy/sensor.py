@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -12,6 +13,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import UnitOfMass, UnitOfTime
+from petsnowy import Notification  # type: ignore[attr-defined]
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -30,7 +32,7 @@ from .entity import PetSnowyEntity
 class PetSnowySensorDescription(SensorEntityDescription):
     """Describe a PetSnowy sensor entity."""
 
-    value_fn: str
+    value_fn: str | Callable[[Any], Any]
 
 
 LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
@@ -72,6 +74,17 @@ LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
         device_class=SensorDeviceClass.ENUM,
         options=["standby", "cleaning", "deodorization", "sleep", "pet_into", "wait_clean"],
         value_fn="status",
+    ),
+    PetSnowySensorDescription(
+        key="last_notification",
+        translation_key="last_notification",
+        icon="mdi:bell",
+        value_fn=lambda s: ", ".join(
+            n.name.replace("_", " ").title()
+            for n in Notification
+            if n and n in s.notifications
+        )
+        or "None",
     ),
 )
 
@@ -170,7 +183,11 @@ class PetSnowySensor(PetSnowyEntity, SensorEntity):
         state = self.coordinator.data
         if state is None:
             return None
-        value = getattr(state, self.entity_description.value_fn, None)
+        value_fn = self.entity_description.value_fn
+        if callable(value_fn):
+            value = value_fn(state)
+        else:
+            value = getattr(state, value_fn, None)
         # StrEnum values need to be plain strings for HA enum sensors
         if isinstance(value, str):
             return str(value)

@@ -67,6 +67,20 @@ LITTERBOX_SWITCHES: tuple[PetSnowySwitchDescription, ...] = (
         value_fn="auto_deodorize",
         set_fn="set_auto_deodorize",
     ),
+    PetSnowySwitchDescription(
+        key="scheduled_deodorize",
+        translation_key="scheduled_deodorize",
+        icon="mdi:spray",
+        value_fn="scheduled_deodorize",
+        set_fn="set_scheduled_deodorize",
+    ),
+    PetSnowySwitchDescription(
+        key="scheduled_clean",
+        translation_key="scheduled_clean",
+        icon="mdi:broom",
+        value_fn="scheduled_clean",
+        set_fn="set_scheduled_clean",
+    ),
 )
 
 FOUNTAIN_SWITCHES: tuple[PetSnowySwitchDescription, ...] = (

@@ -68,6 +68,9 @@
           "enough": "Enough",
           "insufficient": "Insufficient"
         }
+      },
+      "last_notification": {
+        "name": "Last notification"
       }
     },
     "binary_sensor": {
@@ -126,6 +129,12 @@
       },
       "auto_deodorize": {
         "name": "Auto deodorize"
+      },
+      "scheduled_deodorize": {
+        "name": "Scheduled deodorize"
+      },
+      "scheduled_clean": {
+        "name": "Scheduled clean"
       },
       "power": {
         "name": "Power"
