@@ -23,7 +23,7 @@ from .coordinator import _DEVICE_CLASSES
 _LOGGER = logging.getLogger(__name__)
 
 
-class PetSnowyConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
+class PetSnowyConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for PetSnowy."""
 
     VERSION = 1
