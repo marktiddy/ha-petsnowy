@@ -23,19 +23,19 @@ class TestLitterboxEntities:
 
     def test_has_sensors(self) -> None:
         """Litterbox exposes sensors."""
-        assert len(_SENSORS_BY_TYPE[DEVICE_TYPE_LITTERBOX]) == 5
+        assert len(_SENSORS_BY_TYPE[DEVICE_TYPE_LITTERBOX]) == 6
 
     def test_has_switches(self) -> None:
         """Litterbox exposes switches."""
-        assert len(_SWITCHES_BY_TYPE[DEVICE_TYPE_LITTERBOX]) == 5
+        assert len(_SWITCHES_BY_TYPE[DEVICE_TYPE_LITTERBOX]) == 7
 
     def test_has_buttons(self) -> None:
         """Litterbox exposes action buttons."""
         assert len(_BUTTONS_BY_TYPE[DEVICE_TYPE_LITTERBOX]) == 8
 
     def test_has_binary_sensors(self) -> None:
-        """Litterbox exposes fault binary sensors."""
-        assert len(_BINARY_SENSORS_BY_TYPE[DEVICE_TYPE_LITTERBOX]) == 7
+        """Litterbox exposes fault and occupancy binary sensors."""
+        assert len(_BINARY_SENSORS_BY_TYPE[DEVICE_TYPE_LITTERBOX]) == 8
 
     def test_has_numbers(self) -> None:
         """Litterbox exposes number entities."""
