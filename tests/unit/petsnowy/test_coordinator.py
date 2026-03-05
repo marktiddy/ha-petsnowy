@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from custom_components.petsnowy.const import (
     CONF_ADDRESS,
@@ -33,16 +31,17 @@ class TestPetSnowyCoordinator:
         }
         return entry
 
-    @patch(
-        "custom_components.petsnowy.coordinator.PetSnowy",
-        autospec=True,
-    )
-    def test_coordinator_creates_correct_device_type(self, mock_cls: MagicMock) -> None:
+    def test_coordinator_creates_correct_device_type(self) -> None:
         """Coordinator instantiates the correct device class."""
         hass = MagicMock()
         entry = self._make_entry()
+        mock_cls = MagicMock()
 
-        coordinator = PetSnowyCoordinator(hass, entry)
+        with patch(
+            "custom_components.petsnowy.coordinator._DEVICE_CLASSES",
+            {DEVICE_TYPE_LITTERBOX: mock_cls},
+        ):
+            coordinator = PetSnowyCoordinator(hass, entry)
 
         mock_cls.assert_called_once_with(
             "test_device_001",
@@ -52,28 +51,28 @@ class TestPetSnowyCoordinator:
         )
         assert coordinator.device_type == DEVICE_TYPE_LITTERBOX
 
-    @patch(
-        "custom_components.petsnowy.coordinator.PetSnowy",
-        autospec=True,
-    )
-    def test_coordinator_name_includes_device_id(self, mock_cls: MagicMock) -> None:
+    def test_coordinator_name_includes_device_id(self) -> None:
         """Coordinator name contains the device ID for logging."""
         hass = MagicMock()
         entry = self._make_entry()
 
-        coordinator = PetSnowyCoordinator(hass, entry)
+        with patch(
+            "custom_components.petsnowy.coordinator._DEVICE_CLASSES",
+            {DEVICE_TYPE_LITTERBOX: MagicMock()},
+        ):
+            coordinator = PetSnowyCoordinator(hass, entry)
 
         assert "test_device_001" in coordinator.name
 
-    @patch(
-        "custom_components.petsnowy.coordinator.PetSnowy",
-        autospec=True,
-    )
-    def test_coordinator_starts_disconnected(self, mock_cls: MagicMock) -> None:
+    def test_coordinator_starts_disconnected(self) -> None:
         """Coordinator starts in disconnected state."""
         hass = MagicMock()
         entry = self._make_entry()
 
-        coordinator = PetSnowyCoordinator(hass, entry)
+        with patch(
+            "custom_components.petsnowy.coordinator._DEVICE_CLASSES",
+            {DEVICE_TYPE_LITTERBOX: MagicMock()},
+        ):
+            coordinator = PetSnowyCoordinator(hass, entry)
 
         assert coordinator._connected is False
