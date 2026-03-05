@@ -45,7 +45,8 @@
           "standby": "Standby",
           "cleaning": "Cleaning",
           "deodorization": "Deodorization",
-          "sleep": "Sleep"
+          "sleep": "Sleep",
+          "pet_into": "Pet inside"
         }
       },
       "filter_days": {

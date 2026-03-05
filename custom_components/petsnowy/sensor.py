@@ -70,7 +70,7 @@ LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
         translation_key="litterbox_status",
         icon="mdi:state-machine",
         device_class=SensorDeviceClass.ENUM,
-        options=["standby", "cleaning", "deodorization", "sleep"],
+        options=["standby", "cleaning", "deodorization", "sleep", "pet_into"],
         value_fn="status",
     ),
 )
