@@ -1,6 +1,6 @@
-[![GitHub Release](https://img.shields.io/github/v/release/hypercubian/ha-petsnowy?style=for-the-badge)](https://github.com/hypercubian/ha-petsnowy/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/hypercubian/ha-petsnowy?include_prereleases&style=for-the-badge)](https://github.com/hypercubian/ha-petsnowy/releases)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5?style=for-the-badge)](https://hacs.xyz/)
-[![License: MIT](https://img.shields.io/github/license/hypercubian/ha-petsnowy?style=for-the-badge)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000?style=for-the-badge)](https://github.com/psf/black)
 [![Type checked: mypy](https://img.shields.io/badge/type%20checked-mypy-blue?style=for-the-badge)](https://mypy-lang.org/)
 
