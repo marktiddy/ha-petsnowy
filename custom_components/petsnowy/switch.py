@@ -103,14 +103,6 @@ FOUNTAIN_SWITCHES: tuple[PetSnowySwitchDescription, ...] = (
 
 PURIFIER_SWITCHES: tuple[PetSnowySwitchDescription, ...] = (
     PetSnowySwitchDescription(
-        key="purifier_power",
-        translation_key="power",
-        icon="mdi:power",
-        value_fn="switch",
-        on_fn="turn_on",
-        off_fn="turn_off",
-    ),
-    PetSnowySwitchDescription(
         key="anion",
         translation_key="anion",
         icon="mdi:atom",

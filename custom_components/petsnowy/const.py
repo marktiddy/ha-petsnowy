@@ -30,6 +30,7 @@ DEFAULT_VERSIONS: dict[str, float] = {
 PLATFORMS: list[str] = [
     "binary_sensor",
     "button",
+    "fan",
     "number",
     "select",
     "sensor",

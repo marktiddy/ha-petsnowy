@@ -26,6 +26,19 @@
     }
   },
   "entity": {
+    "fan": {
+      "air_purifier": {
+        "name": "Air Purifier",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "auto": "Auto",
+              "sleep": "Sleep"
+            }
+          }
+        }
+      }
+    },
     "sensor": {
       "cat_weight": {
         "name": "Cat weight"

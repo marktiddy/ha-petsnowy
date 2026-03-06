@@ -35,22 +35,6 @@ FOUNTAIN_SELECTS: tuple[PetSnowySelectDescription, ...] = (
 
 PURIFIER_SELECTS: tuple[PetSnowySelectDescription, ...] = (
     PetSnowySelectDescription(
-        key="purifier_mode",
-        translation_key="purifier_mode",
-        icon="mdi:fan",
-        options=["auto", "sleep"],
-        value_fn="mode",
-        set_fn="set_mode",
-    ),
-    PetSnowySelectDescription(
-        key="fan_speed",
-        translation_key="fan_speed",
-        icon="mdi:fan",
-        options=["1", "2", "3", "4", "5", "6"],
-        value_fn="speed",
-        set_fn="set_speed",
-    ),
-    PetSnowySelectDescription(
         key="countdown",
         translation_key="countdown",
         icon="mdi:timer",
