@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "homeassistant-integrations"
-version = "0.1.0"
+version = "0.1.2"
 description = "Custom Home Assistant integrations"
 license = "MIT"
 authors = []
