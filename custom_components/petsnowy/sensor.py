@@ -32,7 +32,7 @@ from .entity import PetSnowyEntity
 class PetSnowySensorDescription(SensorEntityDescription):
     """Describe a PetSnowy sensor entity."""
 
-    value_fn: str | Callable[[Any], Any]
+    value_fn: str | Callable[..., Any]
 
 
 LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
@@ -49,7 +49,7 @@ LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
         translation_key="excretion_count_today",
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
-        value_fn="excretion_count_today",
+        value_fn=lambda s, c: c.accumulated_excretion_count,
     ),
     PetSnowySensorDescription(
         key="excretion_duration_today",
@@ -57,7 +57,7 @@ LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
         native_unit_of_measurement=UnitOfTime.SECONDS,
         device_class=SensorDeviceClass.DURATION,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        value_fn="excretion_duration_today",
+        value_fn=lambda s, c: c.accumulated_excretion_duration,
     ),
     PetSnowySensorDescription(
         key="filter_days_remaining",
@@ -86,7 +86,7 @@ LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
         key="last_notification",
         translation_key="last_notification",
         icon="mdi:bell",
-        value_fn=lambda s: ", ".join(
+        value_fn=lambda s, _c: ", ".join(
             n.name.replace("_", " ").title()
             for n in Notification
             if n and n in s.notifications
@@ -192,7 +192,7 @@ class PetSnowySensor(PetSnowyEntity, SensorEntity):
             return None
         value_fn = self.entity_description.value_fn
         if callable(value_fn):
-            value = value_fn(state)
+            value = value_fn(state, self.coordinator)
         else:
             value = getattr(state, value_fn, None)
         # StrEnum values need to be plain strings for HA enum sensors

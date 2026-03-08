@@ -52,6 +52,14 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
         )
         self._connected = False
 
+        # Litterbox DPS 7/8 are transient signals (briefly non-zero after
+        # each use, then reset to 0).  We accumulate 0→non-zero transitions
+        # ourselves so the HA sensor shows a true daily total.
+        self._prev_excretion_count: int = 0
+        self._prev_excretion_duration: int = 0
+        self.accumulated_excretion_count: int = 0
+        self.accumulated_excretion_duration: int = 0
+
         super().__init__(
             hass,
             _LOGGER,
@@ -66,7 +74,7 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
             if not self._connected:
                 await self.device.connect()
                 self._connected = True
-            return await self.device.get_state()
+            state = await self.device.get_state()
         except Exception as err:
             self._connected = False
             try:
@@ -74,6 +82,21 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
             except Exception:  # noqa: BLE001
                 pass
             raise UpdateFailed(f"Error communicating with device: {err}") from err
+
+        if self.device_type == DEVICE_TYPE_LITTERBOX:
+            cur_count = state.excretion_count_today
+            cur_duration = state.excretion_duration_today
+
+            # Detect 0→non-zero transition = one new use event
+            if cur_count > 0 and self._prev_excretion_count == 0:
+                self.accumulated_excretion_count += cur_count
+            if cur_duration > 0 and self._prev_excretion_duration == 0:
+                self.accumulated_excretion_duration += cur_duration
+
+            self._prev_excretion_count = cur_count
+            self._prev_excretion_duration = cur_duration
+
+        return state
 
     async def async_shutdown(self) -> None:
         """Disconnect from the device on shutdown."""
