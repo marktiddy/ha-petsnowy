@@ -87,11 +87,12 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
             cur_count = state.excretion_count_today
             cur_duration = state.excretion_duration_today
 
-            # Detect 0→non-zero transition = one new use event
+            # Detect 0→non-zero transition = one new use event.
+            # Ignore false triggers: weight under 4kg or duration under 10s.
             if cur_count > 0 and self._prev_excretion_count == 0:
-                self.accumulated_excretion_count += cur_count
-            if cur_duration > 0 and self._prev_excretion_duration == 0:
-                self.accumulated_excretion_duration += cur_duration
+                if state.cat_weight >= 4000 and cur_duration >= 10:
+                    self.accumulated_excretion_count += cur_count
+                    self.accumulated_excretion_duration += cur_duration
 
             self._prev_excretion_count = cur_count
             self._prev_excretion_duration = cur_duration
