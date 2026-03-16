@@ -66,11 +66,14 @@ class PetSnowyPurifierFan(PetSnowyEntity, FanEntity):
 
     @property
     def preset_mode(self) -> str | None:
-        """Return the current preset mode."""
+        """Return the current preset mode, or None when in manual mode."""
         state = self.coordinator.data
         if state is None:
             return None
-        return str(state.mode)
+        mode = str(state.mode)
+        if mode in PRESET_MODES:
+            return mode
+        return None
 
     async def async_turn_on(
         self,
@@ -82,6 +85,7 @@ class PetSnowyPurifierFan(PetSnowyEntity, FanEntity):
         await self.coordinator.device.turn_on()
         if percentage is not None:
             speed = percentage_to_ordered_list_item(SPEED_LIST, percentage)
+            await self.coordinator.device.set_mode("manual")
             await self.coordinator.device.set_speed(speed)
         if preset_mode is not None:
             await self.coordinator.device.set_mode(preset_mode)
@@ -93,11 +97,12 @@ class PetSnowyPurifierFan(PetSnowyEntity, FanEntity):
         await self.coordinator.async_request_refresh()
 
     async def async_set_percentage(self, percentage: int) -> None:
-        """Set the speed percentage."""
+        """Set the speed percentage, switching to manual mode."""
         if percentage == 0:
             await self.async_turn_off()
             return
         speed = percentage_to_ordered_list_item(SPEED_LIST, percentage)
+        await self.coordinator.device.set_mode("manual")
         await self.coordinator.device.set_speed(speed)
         await self.coordinator.async_request_refresh()
 
