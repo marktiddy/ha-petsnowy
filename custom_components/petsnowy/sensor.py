@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
@@ -15,6 +16,7 @@ from homeassistant.components.sensor import (
 from homeassistant.const import UnitOfMass, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from petsnowy import Notification  # type: ignore[attr-defined]
 
 from . import PetSnowyConfigEntry
@@ -28,11 +30,15 @@ from .coordinator import PetSnowyCoordinator
 from .entity import PetSnowyEntity
 
 
+_LOGGER = logging.getLogger(__name__)
+
+
 @dataclass(frozen=True, kw_only=True)
 class PetSnowySensorDescription(SensorEntityDescription):
     """Describe a PetSnowy sensor entity."""
 
     value_fn: str | Callable[..., Any]
+    restore_coordinator_attr: str | None = None
 
 
 LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
@@ -50,6 +56,7 @@ LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
         value_fn=lambda s, c: c.accumulated_excretion_count,
+        restore_coordinator_attr="accumulated_excretion_count",
     ),
     PetSnowySensorDescription(
         key="excretion_duration_today",
@@ -58,6 +65,7 @@ LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
         device_class=SensorDeviceClass.DURATION,
         state_class=SensorStateClass.TOTAL_INCREASING,
         value_fn=lambda s, c: c.accumulated_excretion_duration,
+        restore_coordinator_attr="accumulated_excretion_duration",
     ),
     PetSnowySensorDescription(
         key="filter_days_remaining",
@@ -171,7 +179,7 @@ async def async_setup_entry(
     async_add_entities(PetSnowySensor(coordinator, desc) for desc in descriptions)
 
 
-class PetSnowySensor(PetSnowyEntity, SensorEntity):
+class PetSnowySensor(PetSnowyEntity, RestoreEntity, SensorEntity):
     """Representation of a PetSnowy sensor."""
 
     entity_description: PetSnowySensorDescription
@@ -183,6 +191,23 @@ class PetSnowySensor(PetSnowyEntity, SensorEntity):
     ) -> None:
         super().__init__(coordinator, description.key)
         self.entity_description = description
+
+    async def async_added_to_hass(self) -> None:
+        """Restore accumulated values from last known state."""
+        await super().async_added_to_hass()
+        attr = self.entity_description.restore_coordinator_attr
+        if attr is None:
+            return
+        last_state = await self.async_get_last_state()
+        if last_state is None or last_state.state in (None, "unknown", "unavailable"):
+            return
+        try:
+            restored = int(float(last_state.state))
+        except (ValueError, TypeError):
+            return
+        if restored > 0:
+            setattr(self.coordinator, attr, restored)
+            _LOGGER.debug("Restored %s = %s", attr, restored)
 
     @property
     def native_value(self) -> Any:
