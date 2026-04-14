@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -30,15 +30,13 @@ from .coordinator import PetSnowyCoordinator
 from .entity import PetSnowyEntity
 
 
-_LOGGER = logging.getLogger(__name__)
-
-
 @dataclass(frozen=True, kw_only=True)
 class PetSnowySensorDescription(SensorEntityDescription):
     """Describe a PetSnowy sensor entity."""
 
     value_fn: str | Callable[..., Any]
     restore_coordinator_attr: str | None = None
+    restore_parser: Callable[[str], Any] | None = None
 
 
 LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
@@ -51,21 +49,38 @@ LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
         value_fn="cat_weight",
     ),
     PetSnowySensorDescription(
+        key="calibrated_weight",
+        translation_key="calibrated_weight",
+        native_unit_of_measurement=UnitOfMass.GRAMS,
+        device_class=SensorDeviceClass.WEIGHT,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda s, c: s.cat_weight + c.weight_offset,
+    ),
+    PetSnowySensorDescription(
+        key="actual_excretions",
+        translation_key="actual_excretions",
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:counter",
+        value_fn=lambda s, c: (
+            c.actual_excretions_today
+            if c.external_motion_sensor is not None
+            else s.excretion_count_today
+        ),
+    ),
+    PetSnowySensorDescription(
         key="excretion_count_today",
         translation_key="excretion_count_today",
-        state_class=SensorStateClass.TOTAL_INCREASING,
+        state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:counter",
-        value_fn=lambda s, c: c.accumulated_excretion_count,
-        restore_coordinator_attr="accumulated_excretion_count",
+        value_fn="excretion_count_today",
     ),
     PetSnowySensorDescription(
         key="excretion_duration_today",
         translation_key="excretion_duration_today",
         native_unit_of_measurement=UnitOfTime.SECONDS,
         device_class=SensorDeviceClass.DURATION,
-        state_class=SensorStateClass.TOTAL_INCREASING,
-        value_fn=lambda s, c: c.accumulated_excretion_duration,
-        restore_coordinator_attr="accumulated_excretion_duration",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn="excretion_duration_today",
     ),
     PetSnowySensorDescription(
         key="filter_days_remaining",
@@ -100,6 +115,169 @@ LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
             if n and n in s.notifications
         )
         or "None",
+    ),
+    PetSnowySensorDescription(
+        key="litter_age",
+        translation_key="litter_age",
+        icon="mdi:clock-outline",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=lambda _s, c: c.last_empty_ts,
+        restore_coordinator_attr="last_empty_ts",
+        restore_parser=datetime.fromisoformat,
+    ),
+    PetSnowySensorDescription(
+        key="last_use",
+        translation_key="last_use",
+        icon="mdi:cat",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=lambda _s, c: c.last_use_ts,
+        restore_coordinator_attr="last_use_ts",
+        restore_parser=datetime.fromisoformat,
+    ),
+    PetSnowySensorDescription(
+        key="actual_last_use",
+        translation_key="actual_last_use",
+        icon="mdi:cat",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=lambda _s, c: (
+            c.actual_last_use_ts
+            if c.external_motion_sensor is not None
+            else c.last_use_ts
+        ),
+        restore_coordinator_attr="actual_last_use_ts",
+        restore_parser=datetime.fromisoformat,
+    ),
+    PetSnowySensorDescription(
+        key="use_rate",
+        translation_key="use_rate",
+        icon="mdi:chart-line",
+        native_unit_of_measurement="/h",
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=2,
+        value_fn=lambda _s, c: round(len(c.use_event_ts) / 24, 2),
+    ),
+    PetSnowySensorDescription(
+        key="actual_use_rate",
+        translation_key="actual_use_rate",
+        icon="mdi:chart-line",
+        native_unit_of_measurement="/h",
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=2,
+        value_fn=lambda _s, c: round(
+            len(c.actual_use_event_ts if c.external_motion_sensor is not None else c.use_event_ts)
+            / 24,
+            2,
+        ),
+    ),
+    PetSnowySensorDescription(
+        key="weight_trend",
+        translation_key="weight_trend",
+        icon="mdi:trending-up",
+        native_unit_of_measurement=UnitOfMass.GRAMS,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda _s, c: (
+            round(
+                c.weight_samples[-1][1]
+                - sum(w for _, w in c.weight_samples) / len(c.weight_samples)
+            )
+            if len(c.weight_samples) >= 2
+            else None
+        ),
+    ),
+    PetSnowySensorDescription(
+        key="actual_weight_trend",
+        translation_key="actual_weight_trend",
+        icon="mdi:trending-up",
+        native_unit_of_measurement=UnitOfMass.GRAMS,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda _s, c: (
+            (
+                lambda samples: (
+                    round(samples[-1][1] - sum(w for _, w in samples) / len(samples))
+                    if len(samples) >= 2
+                    else None
+                )
+            )(
+                c.actual_weight_samples
+                if c.external_motion_sensor is not None
+                else c.weight_samples
+            )
+        ),
+    ),
+    PetSnowySensorDescription(
+        key="last_filter_reset",
+        translation_key="last_filter_reset",
+        icon="mdi:air-filter",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=lambda _s, c: c.last_filter_reset_ts,
+        restore_coordinator_attr="last_filter_reset_ts",
+        restore_parser=datetime.fromisoformat,
+    ),
+    PetSnowySensorDescription(
+        key="last_clear",
+        translation_key="last_clear",
+        icon="mdi:broom",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=lambda _s, c: c.last_clear_ts,
+        restore_coordinator_attr="last_clear_ts",
+        restore_parser=datetime.fromisoformat,
+    ),
+    PetSnowySensorDescription(
+        key="last_litter_bag_change",
+        translation_key="last_litter_bag_change",
+        icon="mdi:delete-outline",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=lambda _s, c: c.last_litter_bag_change_ts,
+        restore_coordinator_attr="last_litter_bag_change_ts",
+        restore_parser=datetime.fromisoformat,
+    ),
+    PetSnowySensorDescription(
+        key="short_stay_count",
+        translation_key="short_stay_count",
+        icon="mdi:timer-sand",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda _s, c: c.short_stay_count,
+        restore_coordinator_attr="short_stay_count",
+        restore_parser=int,
+    ),
+    PetSnowySensorDescription(
+        key="actual_short_stay_count",
+        translation_key="actual_short_stay_count",
+        icon="mdi:timer-sand",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda _s, c: (
+            c.actual_short_stay_count
+            if c.external_motion_sensor is not None
+            else c.short_stay_count
+        ),
+        restore_coordinator_attr="actual_short_stay_count",
+        restore_parser=int,
+    ),
+    PetSnowySensorDescription(
+        key="last_excretion_duration",
+        translation_key="last_excretion_duration",
+        icon="mdi:timer",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda _s, c: c.last_excretion_duration,
+        restore_coordinator_attr="last_excretion_duration",
+        restore_parser=int,
+    ),
+    PetSnowySensorDescription(
+        key="actual_last_excretion_duration",
+        translation_key="actual_last_excretion_duration",
+        icon="mdi:timer",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda _s, c: (
+            c.actual_last_excretion_duration
+            if c.external_motion_sensor is not None
+            else c.last_excretion_duration
+        ),
+        restore_coordinator_attr="actual_last_excretion_duration",
+        restore_parser=int,
     ),
 )
 
@@ -193,21 +371,21 @@ class PetSnowySensor(PetSnowyEntity, RestoreEntity, SensorEntity):
         self.entity_description = description
 
     async def async_added_to_hass(self) -> None:
-        """Restore accumulated values from last known state."""
+        """Restore persisted coordinator state from the last known sensor value."""
         await super().async_added_to_hass()
-        attr = self.entity_description.restore_coordinator_attr
-        if attr is None:
+        desc = self.entity_description
+        if desc.restore_coordinator_attr is None:
             return
         last_state = await self.async_get_last_state()
         if last_state is None or last_state.state in (None, "unknown", "unavailable"):
             return
+        parser = desc.restore_parser or (lambda s: s)
         try:
-            restored = int(float(last_state.state))
+            restored = parser(last_state.state)
         except (ValueError, TypeError):
             return
-        if restored > 0:
-            setattr(self.coordinator, attr, restored)
-            _LOGGER.debug("Restored %s = %s", attr, restored)
+        if restored is not None:
+            setattr(self.coordinator, desc.restore_coordinator_attr, restored)
 
     @property
     def native_value(self) -> Any:

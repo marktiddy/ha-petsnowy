@@ -22,7 +22,8 @@ from .entity import PetSnowyEntity
 class PetSnowyButtonDescription(ButtonEntityDescription):
     """Describe a PetSnowy button entity."""
 
-    press_fn: str
+    press_fn: str | None = None
+    coordinator_fn: str | None = None
 
 
 LITTERBOX_BUTTONS: tuple[PetSnowyButtonDescription, ...] = (
@@ -73,6 +74,12 @@ LITTERBOX_BUTTONS: tuple[PetSnowyButtonDescription, ...] = (
         translation_key="calibrate_weight",
         icon="mdi:scale-balance",
         press_fn="calibrate_weight",
+    ),
+    PetSnowyButtonDescription(
+        key="reset_litter_age",
+        translation_key="reset_litter_age",
+        icon="mdi:restart",
+        coordinator_fn="mark_litter_changed",
     ),
 )
 
@@ -133,5 +140,9 @@ class PetSnowyButton(PetSnowyEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        await getattr(self.coordinator.device, self.entity_description.press_fn)()
+        desc = self.entity_description
+        if desc.press_fn:
+            await getattr(self.coordinator.device, desc.press_fn)()
+        if desc.coordinator_fn:
+            getattr(self.coordinator, desc.coordinator_fn)()
         await self.coordinator.async_request_refresh()

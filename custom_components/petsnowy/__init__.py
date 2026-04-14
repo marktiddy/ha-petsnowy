@@ -37,7 +37,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: PetSnowyConfigEntry) -> 
         ) from err
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     return True
+
+
+async def _async_update_listener(
+    hass: HomeAssistant, entry: PetSnowyConfigEntry
+) -> None:
+    """Reload the config entry so option changes (weight offset, external sensor) take effect."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 def _cleanup_orphaned_purifier_entities(

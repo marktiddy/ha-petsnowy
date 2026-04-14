@@ -25,6 +25,27 @@
       "already_configured": "This device is already configured."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "PetSnowy options",
+        "description": "Calibration and external sensor integration for the litterbox meta sensors.",
+        "data": {
+          "weight_offset": "Weight offset",
+          "external_motion_sensor": "External motion sensor",
+          "pir_grace_minutes": "PIR grace window"
+        },
+        "data_description": {
+          "weight_offset": "Grams added to the device's reported cat weight. Drives the 'Calibrated weight' sensor. Leave at 0 to match the raw reading.",
+          "external_motion_sensor": "Optional motion/PIR binary sensor placed inside the litterbox. When set, every PIR-validated meta sensor (Last use (actual), Use rate (actual), etc.) only counts device events that coincide with a confirmed cat-inside window.",
+          "pir_grace_minutes": "How long after the PIR last turned off a device event can still count as PIR-confirmed. Raise this if your device reports excretions several minutes after the cat leaves; lower it if false positives leak through. 0 disables the grace window (PIR must be currently on)."
+        }
+      }
+    },
+    "abort": {
+      "not_supported": "Options are only available for the Snow+ Litterbox."
+    }
+  },
   "entity": {
     "fan": {
       "air_purifier": {
@@ -42,6 +63,12 @@
     "sensor": {
       "cat_weight": {
         "name": "Cat weight"
+      },
+      "calibrated_weight": {
+        "name": "Calibrated weight"
+      },
+      "actual_excretions": {
+        "name": "Actual excretions"
       },
       "excretion_count_today": {
         "name": "Excretion count today"
@@ -84,6 +111,48 @@
       },
       "last_notification": {
         "name": "Last notification"
+      },
+      "litter_age": {
+        "name": "Litter age"
+      },
+      "last_use": {
+        "name": "Last use"
+      },
+      "actual_last_use": {
+        "name": "Last use (actual)"
+      },
+      "use_rate": {
+        "name": "Use rate"
+      },
+      "actual_use_rate": {
+        "name": "Use rate (actual)"
+      },
+      "weight_trend": {
+        "name": "Weight trend"
+      },
+      "actual_weight_trend": {
+        "name": "Weight trend (actual)"
+      },
+      "last_filter_reset": {
+        "name": "Last filter reset"
+      },
+      "last_clear": {
+        "name": "Last clear"
+      },
+      "last_litter_bag_change": {
+        "name": "Last litter bag change"
+      },
+      "short_stay_count": {
+        "name": "Short stay count"
+      },
+      "actual_short_stay_count": {
+        "name": "Short stay count (actual)"
+      },
+      "last_excretion_duration": {
+        "name": "Last excretion duration"
+      },
+      "actual_last_excretion_duration": {
+        "name": "Last excretion duration (actual)"
       }
     },
     "binary_sensor": {
@@ -180,6 +249,9 @@
       },
       "calibrate_weight": {
         "name": "Calibrate weight"
+      },
+      "reset_litter_age": {
+        "name": "Reset litter age"
       },
       "reset_pump": {
         "name": "Reset pump"
