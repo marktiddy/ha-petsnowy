@@ -198,23 +198,33 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
     def _process_litterbox_meta(self, state: Any) -> None:
         """Derive meta sensors (last use, rates, trends, etc.) from a fresh state."""
         now = datetime.now(timezone.utc)
-
         self._roll_pir_day_if_needed()
 
-        # First poll after startup: seed baselines without firing any events.
         if not self._initialized:
-            self._prev_notifications = state.notifications
-            self._prev_excretion_count = state.excretion_count_today
-            self._prev_excretion_duration = state.excretion_duration_today
-            self._prev_filter_days = state.filter_days_remaining
-            if Fault.TOP_COVER in state.faults:
-                self._top_cover_removed_since = now
-            if Fault.DRAWER in state.faults:
-                self._drawer_open_since = now
-            self._initialized = True
+            self._seed_first_poll_baselines(state, now)
             return
 
-        # --- Empty-litter event (edge-triggered from notification bitmask) ---
+        self._detect_empty_litter_event(state, now)
+        self._process_new_uses(state, now)
+        self._prune_rolling_windows(now)
+        self._detect_filter_reset(state, now)
+        self._detect_cover_removal(state, now)
+        self._detect_drawer_open(state, now)
+
+    def _seed_first_poll_baselines(self, state: Any, now: datetime) -> None:
+        """Seed edge-detection baselines on the first successful poll."""
+        self._prev_notifications = state.notifications
+        self._prev_excretion_count = state.excretion_count_today
+        self._prev_excretion_duration = state.excretion_duration_today
+        self._prev_filter_days = state.filter_days_remaining
+        if Fault.TOP_COVER in state.faults:
+            self._top_cover_removed_since = now
+        if Fault.DRAWER in state.faults:
+            self._drawer_open_since = now
+        self._initialized = True
+
+    def _detect_empty_litter_event(self, state: Any, now: datetime) -> None:
+        """Edge-detect EMPTY_LITTER_DONE in the notification bitmask."""
         if (
             Notification.EMPTY_LITTER_DONE in state.notifications
             and Notification.EMPTY_LITTER_DONE not in self._prev_notifications
@@ -222,7 +232,8 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
             self.last_empty_ts = now
         self._prev_notifications = state.notifications
 
-        # --- New cat use (excretion_count increased, with midnight-reset handling) ---
+    def _process_new_uses(self, state: Any, now: datetime) -> None:
+        """Detect new excretion events and update raw + PIR-validated meta state."""
         if state.excretion_count_today < self._prev_excretion_count:
             # Midnight reset on the device — treat whatever is currently showing
             # as net-new uses rather than losing the events.
@@ -230,38 +241,11 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
             self._prev_excretion_duration = 0
         new_uses = state.excretion_count_today - self._prev_excretion_count
         if new_uses > 0:
-            # Raw device-driven meta sensors — always update.
-            self.last_use_ts = now
-            for _ in range(new_uses):
-                self.use_event_ts.append(now)
             delta_dur = state.excretion_duration_today - self._prev_excretion_duration
             per_use = delta_dur // new_uses if delta_dur > 0 else 0
-            if per_use > 0:
-                self.last_excretion_duration = per_use
-                if per_use < 30:
-                    self.short_stay_count += new_uses
-            if state.cat_weight > 0:
-                self.weight_samples.append((now, state.cat_weight))
-
-            # PIR-validated parallel meta sensors — only advance if the event
-            # coincides with a confirmed "cat inside" window. Otherwise the
-            # device likely reacted to a cat sitting on top of the lid.
+            self._record_raw_use(state, now, new_uses, per_use)
             if self._is_pir_valid(now):
-                self.actual_last_use_ts = now
-                if self.external_motion_sensor is not None:
-                    self.actual_excretions_today += new_uses
-                for _ in range(new_uses):
-                    self.actual_use_event_ts.append(now)
-                if per_use > 0:
-                    self.actual_last_excretion_duration = per_use
-                    if per_use < 30:
-                        self.actual_short_stay_count += new_uses
-                if state.cat_weight > 0:
-                    self.actual_weight_samples.append((now, state.cat_weight))
-                # Consume the PIR confirmation: any later event needs its own
-                # fresh PIR activity, so the grace window can't leak false
-                # positives shortly after a real use.
-                self._pir_last_active_end = None
+                self._record_actual_use(state, now, new_uses, per_use)
             else:
                 _LOGGER.debug(
                     "Ignoring %d device excretion event(s) for PIR-validated "
@@ -271,7 +255,42 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
         self._prev_excretion_count = state.excretion_count_today
         self._prev_excretion_duration = state.excretion_duration_today
 
-        # Prune rolling windows (device-driven + PIR-validated parallels).
+    def _record_raw_use(
+        self, state: Any, now: datetime, new_uses: int, per_use: int
+    ) -> None:
+        """Update device-driven meta sensors for a fresh use event."""
+        self.last_use_ts = now
+        for _ in range(new_uses):
+            self.use_event_ts.append(now)
+        if per_use > 0:
+            self.last_excretion_duration = per_use
+            if per_use < 30:
+                self.short_stay_count += new_uses
+        if state.cat_weight > 0:
+            self.weight_samples.append((now, state.cat_weight))
+
+    def _record_actual_use(
+        self, state: Any, now: datetime, new_uses: int, per_use: int
+    ) -> None:
+        """Update PIR-validated parallel meta sensors for a fresh use event."""
+        self.actual_last_use_ts = now
+        if self.external_motion_sensor is not None:
+            self.actual_excretions_today += new_uses
+        for _ in range(new_uses):
+            self.actual_use_event_ts.append(now)
+        if per_use > 0:
+            self.actual_last_excretion_duration = per_use
+            if per_use < 30:
+                self.actual_short_stay_count += new_uses
+        if state.cat_weight > 0:
+            self.actual_weight_samples.append((now, state.cat_weight))
+        # Consume the PIR confirmation: later events need their own fresh PIR
+        # activity, so the grace window can't leak false positives shortly
+        # after a real use.
+        self._pir_last_active_end = None
+
+    def _prune_rolling_windows(self, now: datetime) -> None:
+        """Drop stale entries from the use-rate (24h) and weight-trend (7d) windows."""
         cutoff_24h = now - timedelta(hours=24)
         while self.use_event_ts and self.use_event_ts[0] < cutoff_24h:
             self.use_event_ts.popleft()
@@ -285,12 +304,14 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
         ):
             self.actual_weight_samples.popleft()
 
-        # --- Filter reset (filter_days_remaining increased) ---
+    def _detect_filter_reset(self, state: Any, now: datetime) -> None:
+        """Detect a filter reset when filter_days_remaining increases."""
         if state.filter_days_remaining > self._prev_filter_days:
             self.last_filter_reset_ts = now
         self._prev_filter_days = state.filter_days_remaining
 
-        # --- Top cover removed for >5 min → "cleared" event ---
+    def _detect_cover_removal(self, state: Any, now: datetime) -> None:
+        """Record a clear event when the top cover stays removed ≥ 5 min."""
         if Fault.TOP_COVER in state.faults:
             if self._top_cover_removed_since is None:
                 self._top_cover_removed_since = now
@@ -302,7 +323,8 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
         else:
             self._top_cover_removed_since = None
 
-        # --- Drawer (litter tray) open for >1 min → litter bag changed ---
+    def _detect_drawer_open(self, state: Any, now: datetime) -> None:
+        """Record a litter-bag change when the drawer stays open ≥ 1 min."""
         if Fault.DRAWER in state.faults:
             if self._drawer_open_since is None:
                 self._drawer_open_since = now
