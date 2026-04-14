@@ -137,7 +137,7 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
                 self._handle_pir_state_change,
             )
 
-    @callback
+    @callback  # type: ignore[untyped-decorator]
     def _handle_pir_state_change(self, event: Event) -> None:
         """Track PIR transitions so device events can be gated on confirmed presence."""
         new_state = event.data.get("new_state")
@@ -280,7 +280,9 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
         cutoff_7d = now - timedelta(days=7)
         while self.weight_samples and self.weight_samples[0][0] < cutoff_7d:
             self.weight_samples.popleft()
-        while self.actual_weight_samples and self.actual_weight_samples[0][0] < cutoff_7d:
+        while (
+            self.actual_weight_samples and self.actual_weight_samples[0][0] < cutoff_7d
+        ):
             self.actual_weight_samples.popleft()
 
         # --- Filter reset (filter_days_remaining increased) ---

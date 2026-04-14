@@ -164,7 +164,11 @@ LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
         value_fn=lambda _s, c: round(
-            len(c.actual_use_event_ts if c.external_motion_sensor is not None else c.use_event_ts)
+            len(
+                c.actual_use_event_ts
+                if c.external_motion_sensor is not None
+                else c.use_event_ts
+            )
             / 24,
             2,
         ),

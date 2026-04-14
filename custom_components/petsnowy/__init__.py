@@ -9,7 +9,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import entity_registry as er
 
-from .const import CONF_DEVICE_ID, CONF_DEVICE_TYPE, DEVICE_TYPE_PURIFIER, DOMAIN, PLATFORMS
+from .const import (
+    CONF_DEVICE_ID,
+    CONF_DEVICE_TYPE,
+    DEVICE_TYPE_PURIFIER,
+    DOMAIN,
+    PLATFORMS,
+)
 from .coordinator import PetSnowyCoordinator
 
 PetSnowyConfigEntry: TypeAlias = ConfigEntry[PetSnowyCoordinator]
