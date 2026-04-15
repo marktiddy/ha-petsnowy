@@ -44,7 +44,6 @@ LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
         key="cat_weight",
         translation_key="cat_weight",
         native_unit_of_measurement=UnitOfMass.GRAMS,
-        suggested_unit_of_measurement=UnitOfMass.GRAMS,
         device_class=SensorDeviceClass.WEIGHT,
         state_class=SensorStateClass.MEASUREMENT,
         value_fn="cat_weight",
