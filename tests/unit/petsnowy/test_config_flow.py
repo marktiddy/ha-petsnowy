@@ -9,9 +9,12 @@ import pytest
 from custom_components.petsnowy.config_flow import PetSnowyConfigFlow
 from custom_components.petsnowy.const import (
     CONF_ADDRESS,
+    CONF_CLIENT_ID,
+    CONF_CLIENT_SECRET,
     CONF_DEVICE_ID,
     CONF_DEVICE_TYPE,
     CONF_LOCAL_KEY,
+    CONF_REGION,
     CONF_VERSION,
     DEFAULT_VERSIONS,
     DEVICE_TYPE_FEEDER,
@@ -120,8 +123,8 @@ class TestConfigFlowDeviceStep:
         mock_device.disconnect = AsyncMock()
 
         with patch(
-            "custom_components.petsnowy.config_flow._DEVICE_CLASSES",
-            {DEVICE_TYPE_LITTERBOX: MagicMock(return_value=mock_device)},
+            "custom_components.petsnowy.config_flow.build_device",
+            MagicMock(return_value=mock_device),
         ):
             result = await flow.async_step_device(
                 {
@@ -150,8 +153,8 @@ class TestConfigFlowDeviceStep:
         mock_device.disconnect = AsyncMock()
 
         with patch(
-            "custom_components.petsnowy.config_flow._DEVICE_CLASSES",
-            {DEVICE_TYPE_LITTERBOX: MagicMock(return_value=mock_device)},
+            "custom_components.petsnowy.config_flow.build_device",
+            MagicMock(return_value=mock_device),
         ):
             result = await flow.async_step_device(
                 {
@@ -176,8 +179,8 @@ class TestConfigFlowDeviceStep:
         mock_device_bad.disconnect = AsyncMock()
 
         with patch(
-            "custom_components.petsnowy.config_flow._DEVICE_CLASSES",
-            {DEVICE_TYPE_LITTERBOX: MagicMock(return_value=mock_device_bad)},
+            "custom_components.petsnowy.config_flow.build_device",
+            MagicMock(return_value=mock_device_bad),
         ):
             result = await flow.async_step_device(
                 {
@@ -195,8 +198,8 @@ class TestConfigFlowDeviceStep:
         mock_device_good.disconnect = AsyncMock()
 
         with patch(
-            "custom_components.petsnowy.config_flow._DEVICE_CLASSES",
-            {DEVICE_TYPE_LITTERBOX: MagicMock(return_value=mock_device_good)},
+            "custom_components.petsnowy.config_flow.build_device",
+            MagicMock(return_value=mock_device_good),
         ):
             await flow.async_step_device(
                 {
@@ -219,12 +222,11 @@ class TestConfigFlowDeviceStep:
         )
 
         mock_device = AsyncMock()
-        mock_cls = MagicMock(return_value=mock_device)
 
         with (
             patch(
-                "custom_components.petsnowy.config_flow._DEVICE_CLASSES",
-                {DEVICE_TYPE_LITTERBOX: mock_cls},
+                "custom_components.petsnowy.config_flow.build_device",
+                MagicMock(return_value=mock_device),
             ),
             pytest.raises(AbortFlow, match="already_configured"),
         ):
@@ -246,8 +248,8 @@ class TestConfigFlowDeviceStep:
         mock_device.disconnect = AsyncMock()
 
         with patch(
-            "custom_components.petsnowy.config_flow._DEVICE_CLASSES",
-            {DEVICE_TYPE_FOUNTAIN: MagicMock(return_value=mock_device)},
+            "custom_components.petsnowy.config_flow.build_device",
+            MagicMock(return_value=mock_device),
         ):
             await flow.async_step_device(
                 {
@@ -259,3 +261,89 @@ class TestConfigFlowDeviceStep:
 
         entry_data = flow.async_create_entry.call_args[1]["data"]
         assert entry_data[CONF_VERSION] == 3.3
+
+
+class TestConfigFlowCloudStep:
+    """Tests for the OilClear cloud credential step."""
+
+    def _make_flow(self) -> PetSnowyConfigFlow:
+        """Create a config flow ready for the cloud step."""
+        flow = PetSnowyConfigFlow()
+        flow.hass = MagicMock()
+        flow._device_type = DEVICE_TYPE_OILCLEAR
+        flow.async_set_unique_id = AsyncMock()
+        flow._abort_if_unique_id_configured = MagicMock()
+        flow.async_create_entry = MagicMock(return_value={"type": "create_entry"})
+        return flow
+
+    @pytest.mark.asyncio
+    async def test_user_step_routes_oilclear_to_cloud(self) -> None:
+        """Selecting the OilClear advances to the cloud step, not device."""
+        flow = PetSnowyConfigFlow()
+        flow.hass = MagicMock()
+        flow.async_step_cloud = AsyncMock(
+            return_value={"type": "form", "step_id": "cloud"}
+        )
+        await flow.async_step_user({CONF_DEVICE_TYPE: DEVICE_TYPE_OILCLEAR})
+        assert flow._device_type == DEVICE_TYPE_OILCLEAR
+        flow.async_step_cloud.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_cloud_step_shows_form(self) -> None:
+        """Cloud step shows the credential form when no input."""
+        flow = self._make_flow()
+        result = await flow.async_step_cloud()
+        assert result["type"] == "form"
+        assert result["step_id"] == "cloud"
+
+    @pytest.mark.asyncio
+    async def test_cloud_step_success(self) -> None:
+        """Valid cloud credentials create a config entry."""
+        flow = self._make_flow()
+        mock_device = AsyncMock()
+        mock_device.connect = AsyncMock()
+        mock_device.disconnect = AsyncMock()
+
+        with patch(
+            "custom_components.petsnowy.config_flow.build_device",
+            MagicMock(return_value=mock_device),
+        ):
+            await flow.async_step_cloud(
+                {
+                    CONF_DEVICE_ID: "bf0715a9362035a7424efn",
+                    CONF_REGION: "eu",
+                    CONF_CLIENT_ID: "access_id",
+                    CONF_CLIENT_SECRET: "access_secret",
+                }
+            )
+
+        flow.async_create_entry.assert_called_once()
+        entry_data = flow.async_create_entry.call_args[1]["data"]
+        assert entry_data[CONF_DEVICE_TYPE] == DEVICE_TYPE_OILCLEAR
+        assert entry_data[CONF_REGION] == "eu"
+        assert entry_data[CONF_CLIENT_ID] == "access_id"
+        assert CONF_ADDRESS not in entry_data
+
+    @pytest.mark.asyncio
+    async def test_cloud_step_connection_error(self) -> None:
+        """Bad cloud credentials show a cannot_connect error."""
+        flow = self._make_flow()
+        mock_device = AsyncMock()
+        mock_device.connect = AsyncMock(side_effect=Exception("auth failed"))
+        mock_device.disconnect = AsyncMock()
+
+        with patch(
+            "custom_components.petsnowy.config_flow.build_device",
+            MagicMock(return_value=mock_device),
+        ):
+            result = await flow.async_step_cloud(
+                {
+                    CONF_DEVICE_ID: "bf0715a9362035a7424efn",
+                    CONF_REGION: "eu",
+                    CONF_CLIENT_ID: "access_id",
+                    CONF_CLIENT_SECRET: "bad_secret",
+                }
+            )
+
+        assert result["type"] == "form"
+        assert result["errors"]["base"] == "cannot_connect"

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections import deque
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
@@ -24,11 +24,14 @@ from petsnowy import (  # type: ignore[attr-defined]
 
 from .const import (
     CONF_ADDRESS,
+    CONF_CLIENT_ID,
+    CONF_CLIENT_SECRET,
     CONF_DEVICE_ID,
     CONF_DEVICE_TYPE,
     CONF_EXTERNAL_MOTION_SENSOR,
     CONF_LOCAL_KEY,
     CONF_PIR_GRACE_MINUTES,
+    CONF_REGION,
     CONF_VERSION,
     CONF_WEIGHT_OFFSET,
     DEFAULT_PIR_GRACE_MINUTES,
@@ -40,19 +43,44 @@ from .const import (
     DEVICE_TYPE_PURIFIER,
     DOMAIN,
 )
-from .oilclear import OilClearFountain
+from .oilclear import OilClearCloudFountain
 
 _LOGGER = logging.getLogger(__name__)
 
+# Local-polling device classes, keyed by device type. The OilClear is handled
+# separately in build_device() because it polls the Tuya Cloud instead.
 _DEVICE_CLASSES: dict[str, type] = {
     DEVICE_TYPE_LITTERBOX: PetSnowy,
     DEVICE_TYPE_FOUNTAIN: Fountain,
-    # The OilClear (PS-120) shares DPs 1-7 with the PS-010 fountain but adds a
-    # battery, heater, and weight sensor, so it uses a dedicated local driver.
-    DEVICE_TYPE_OILCLEAR: OilClearFountain,
     DEVICE_TYPE_PURIFIER: Purifier,
     DEVICE_TYPE_FEEDER: Feeder,
 }
+
+PetSnowyDevice = PetSnowy | Fountain | Purifier | Feeder | OilClearCloudFountain
+
+
+def build_device(device_type: str, data: Mapping[str, Any]) -> PetSnowyDevice:
+    """Construct the driver for a config entry's device.
+
+    The OilClear (PS-120) is power-managed and drops its local Tuya listener
+    between cloud syncs, so it uses a cloud-polling driver with Tuya IoT
+    credentials rather than the LAN address / local key the other devices use.
+    """
+    device_id = data[CONF_DEVICE_ID]
+    if device_type == DEVICE_TYPE_OILCLEAR:
+        return OilClearCloudFountain(
+            device_id,
+            data[CONF_REGION],
+            data[CONF_CLIENT_ID],
+            data[CONF_CLIENT_SECRET],
+        )
+    cls = _DEVICE_CLASSES[device_type]
+    return cls(  # type: ignore[no-any-return]
+        device_id,
+        data[CONF_ADDRESS],
+        data[CONF_LOCAL_KEY],
+        version=data[CONF_VERSION],
+    )
 
 
 class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
@@ -63,13 +91,7 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         self.device_type: str = entry.data[CONF_DEVICE_TYPE]
 
-        cls = _DEVICE_CLASSES[self.device_type]
-        self.device: PetSnowy | Fountain | Purifier | Feeder = cls(
-            entry.data[CONF_DEVICE_ID],
-            entry.data[CONF_ADDRESS],
-            entry.data[CONF_LOCAL_KEY],
-            version=entry.data[CONF_VERSION],
-        )
+        self.device: PetSnowyDevice = build_device(self.device_type, entry.data)
         self._connected = False
 
         # === User-configurable options ===

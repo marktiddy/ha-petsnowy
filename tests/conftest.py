@@ -9,9 +9,12 @@ import pytest
 
 from custom_components.petsnowy.const import (
     CONF_ADDRESS,
+    CONF_CLIENT_ID,
+    CONF_CLIENT_SECRET,
     CONF_DEVICE_ID,
     CONF_DEVICE_TYPE,
     CONF_LOCAL_KEY,
+    CONF_REGION,
     CONF_VERSION,
     DEVICE_TYPE_FEEDER,
     DEVICE_TYPE_FOUNTAIN,
@@ -39,9 +42,9 @@ MOCK_FOUNTAIN_CONFIG: dict[str, Any] = {
 MOCK_OILCLEAR_CONFIG: dict[str, Any] = {
     CONF_DEVICE_TYPE: DEVICE_TYPE_OILCLEAR,
     CONF_DEVICE_ID: "test_oilclear_001",
-    CONF_ADDRESS: "192.168.1.104",
-    CONF_LOCAL_KEY: "test_local_key_mno",
-    CONF_VERSION: 3.3,
+    CONF_REGION: "eu",
+    CONF_CLIENT_ID: "test_client_id",
+    CONF_CLIENT_SECRET: "test_client_secret",
 }
 
 MOCK_PURIFIER_CONFIG: dict[str, Any] = {
@@ -89,21 +92,20 @@ MOCK_FOUNTAIN_DPS: dict[str, Any] = {
     "102": True,
 }
 
-# The OilClear (PS-120) shares DPs 1-7 with the PS-010 fountain and adds a
-# heater (101), battery (102/106), water temperature (104), and weight (108).
-MOCK_OILCLEAR_DPS: dict[str, Any] = {
-    "1": True,
-    "2": "normal",
-    "3": 28,
-    "4": 0,
-    "7": 25,
-    "101": False,
-    "102": "charge",
-    "104": 5,
-    "106": 100,
-    "108": 2881,
-    "109": True,
-}
+# The OilClear (PS-120) is cloud-polled; its status is a code/value list.
+MOCK_OILCLEAR_STATUS: list[dict[str, Any]] = [
+    {"code": "switch", "value": True},
+    {"code": "work_mode", "value": "normal"},
+    {"code": "filter_days", "value": 28},
+    {"code": "pump_time", "value": 0},
+    {"code": "filter_life", "value": 25},
+    {"code": "heating", "value": False},
+    {"code": "battery_charge_status", "value": "charge"},
+    {"code": "water_temp", "value": 5},
+    {"code": "battery_capacity", "value": 100},
+    {"code": "curr_weight", "value": 2881},
+    {"code": "light", "value": True},
+]
 
 MOCK_PURIFIER_DPS: dict[str, Any] = {
     "1": True,
@@ -149,11 +151,13 @@ def mock_fountain_device() -> AsyncMock:
 
 @pytest.fixture
 def mock_oilclear_device() -> AsyncMock:
-    """Return a mocked OilClear fountain device."""
+    """Return a mocked cloud-backed OilClear fountain device."""
     from custom_components.petsnowy.oilclear import OilClearState
 
     device = AsyncMock()
-    device.get_state = AsyncMock(return_value=OilClearState.from_dps(MOCK_OILCLEAR_DPS))
+    device.get_state = AsyncMock(
+        return_value=OilClearState.from_status(MOCK_OILCLEAR_STATUS)
+    )
     device.connect = AsyncMock()
     device.disconnect = AsyncMock()
     return device

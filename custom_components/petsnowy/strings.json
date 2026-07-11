@@ -16,6 +16,16 @@
           "local_key": "Local key",
           "version": "Protocol version"
         }
+      },
+      "cloud": {
+        "title": "Tuya Cloud Connection",
+        "description": "The OilClear fountain is polled through the Tuya Cloud (it isn't reachable on your LAN between syncs). Enter the Access ID, Access Secret, and region from your Tuya IoT Platform project — the same project you used with the tinytuya wizard.",
+        "data": {
+          "device_id": "Device ID",
+          "region": "Data centre region",
+          "client_id": "Access ID / Client ID",
+          "client_secret": "Access Secret / Client Secret"
+        }
       }
     },
     "error": {

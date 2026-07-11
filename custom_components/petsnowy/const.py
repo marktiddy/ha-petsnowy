@@ -12,6 +12,15 @@ CONF_WEIGHT_OFFSET = "weight_offset"
 CONF_EXTERNAL_MOTION_SENSOR = "external_motion_sensor"
 CONF_PIR_GRACE_MINUTES = "pir_grace_minutes"
 
+# Tuya Cloud credentials (used by cloud-polling devices such as the OilClear).
+CONF_REGION = "region"
+CONF_CLIENT_ID = "client_id"
+CONF_CLIENT_SECRET = "client_secret"
+
+# Data-centre regions accepted by tinytuya.Cloud.
+TUYA_REGIONS: tuple[str, ...] = ("eu", "us", "cn", "in")
+DEFAULT_REGION = "eu"
+
 DEFAULT_PIR_GRACE_MINUTES = 5
 
 DEVICE_TYPE_LITTERBOX = "litterbox"

@@ -23,20 +23,26 @@ from homeassistant.helpers.selector import (
 
 from .const import (
     CONF_ADDRESS,
+    CONF_CLIENT_ID,
+    CONF_CLIENT_SECRET,
     CONF_DEVICE_ID,
     CONF_DEVICE_TYPE,
     CONF_EXTERNAL_MOTION_SENSOR,
     CONF_LOCAL_KEY,
     CONF_PIR_GRACE_MINUTES,
+    CONF_REGION,
     CONF_VERSION,
     CONF_WEIGHT_OFFSET,
     DEFAULT_PIR_GRACE_MINUTES,
+    DEFAULT_REGION,
     DEFAULT_VERSIONS,
     DEVICE_TYPE_LITTERBOX,
+    DEVICE_TYPE_OILCLEAR,
     DEVICE_TYPES,
     DOMAIN,
+    TUYA_REGIONS,
 )
-from .coordinator import _DEVICE_CLASSES
+from .coordinator import build_device
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,6 +67,8 @@ class PetSnowyConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
         """Step 1: Select device type."""
         if user_input is not None:
             self._device_type = user_input[CONF_DEVICE_TYPE]
+            if self._device_type == DEVICE_TYPE_OILCLEAR:
+                return await self.async_step_cloud()
             return await self.async_step_device()
 
         return self.async_show_form(
@@ -70,44 +78,49 @@ class PetSnowyConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
             ),
         )
 
+    async def _validate_and_create(
+        self, device_id: str, data: dict[str, Any]
+    ) -> ConfigFlowResult | str:
+        """Validate connectivity for `data`; create the entry or return an error.
+
+        Returns the created entry result on success, or an error key on failure.
+        """
+        await self.async_set_unique_id(device_id)
+        self._abort_if_unique_id_configured()
+
+        device = build_device(self._device_type, data)
+        try:
+            await device.connect()
+            await device.disconnect()
+        except Exception:
+            _LOGGER.exception("Failed to connect to PetSnowy device")
+            return "cannot_connect"
+
+        return self.async_create_entry(
+            title=f"PetSnowy {DEVICE_TYPES[self._device_type]}",
+            data={CONF_DEVICE_TYPE: self._device_type, **data},
+        )
+
     async def async_step_device(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Step 2: Enter device credentials."""
+        """Step 2 (local devices): Enter LAN credentials."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            device_id = user_input[CONF_DEVICE_ID]
-            await self.async_set_unique_id(device_id)
-            self._abort_if_unique_id_configured()
-
-            version = user_input.get(CONF_VERSION, DEFAULT_VERSIONS[self._device_type])
-
-            cls = _DEVICE_CLASSES[self._device_type]
-            device = cls(
-                device_id,
-                user_input[CONF_ADDRESS],
-                user_input[CONF_LOCAL_KEY],
-                version=version,
-            )
-            try:
-                await device.connect()
-                await device.disconnect()
-            except Exception:
-                _LOGGER.exception("Failed to connect to PetSnowy device")
-                errors["base"] = "cannot_connect"
-
-            if not errors:
-                return self.async_create_entry(
-                    title=f"PetSnowy {DEVICE_TYPES[self._device_type]}",
-                    data={
-                        CONF_DEVICE_TYPE: self._device_type,
-                        CONF_DEVICE_ID: device_id,
-                        CONF_ADDRESS: user_input[CONF_ADDRESS],
-                        CONF_LOCAL_KEY: user_input[CONF_LOCAL_KEY],
-                        CONF_VERSION: version,
-                    },
-                )
+            data = {
+                CONF_DEVICE_ID: user_input[CONF_DEVICE_ID],
+                CONF_ADDRESS: user_input[CONF_ADDRESS],
+                CONF_LOCAL_KEY: user_input[CONF_LOCAL_KEY],
+                CONF_VERSION: user_input.get(
+                    CONF_VERSION, DEFAULT_VERSIONS[self._device_type]
+                ),
+            }
+            result = await self._validate_and_create(user_input[CONF_DEVICE_ID], data)
+            if isinstance(result, str):
+                errors["base"] = result
+            else:
+                return result
 
         default_version = DEFAULT_VERSIONS[self._device_type]
 
@@ -121,6 +134,44 @@ class PetSnowyConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
                     vol.Optional(CONF_VERSION, default=default_version): vol.Coerce(
                         float
                     ),
+                }
+            ),
+            errors=errors,
+        )
+
+    async def async_step_cloud(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Step 2 (OilClear): Enter Tuya Cloud credentials.
+
+        The OilClear is power-managed and unreachable on the LAN between cloud
+        syncs, so it is polled through the Tuya Cloud API instead.
+        """
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            data = {
+                CONF_DEVICE_ID: user_input[CONF_DEVICE_ID],
+                CONF_REGION: user_input[CONF_REGION],
+                CONF_CLIENT_ID: user_input[CONF_CLIENT_ID],
+                CONF_CLIENT_SECRET: user_input[CONF_CLIENT_SECRET],
+            }
+            result = await self._validate_and_create(user_input[CONF_DEVICE_ID], data)
+            if isinstance(result, str):
+                errors["base"] = result
+            else:
+                return result
+
+        return self.async_show_form(
+            step_id="cloud",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_DEVICE_ID): str,
+                    vol.Required(CONF_REGION, default=DEFAULT_REGION): vol.In(
+                        TUYA_REGIONS
+                    ),
+                    vol.Required(CONF_CLIENT_ID): str,
+                    vol.Required(CONF_CLIENT_SECRET): str,
                 }
             ),
             errors=errors,

@@ -45,9 +45,11 @@
 |--------|-------------|-------|----------|-------------|
 | **Self-Cleaning Litter Box** | SNOW+ Automatic Self-Cleaning Litter Box | PS-001 | 3.4 | Smart litter box with auto-clean, deodorization, cat weight tracking, and safety sensors |
 | **Water Fountain** | SNOW+ Automatic Pet Water Fountain | PS-010 | 3.3 | Filtered water fountain with normal/night modes and pump monitoring |
-| **OilClear AI Water Fountain** | OilClear A.I Series Wireless Weight-Sensing Pet Fountain | PS-120 | 3.3 | Filtered water fountain with pump monitoring and filter/pump reset |
+| **OilClear AI Water Fountain** | OilClear A.I Series Wireless Weight-Sensing Pet Fountain | PS-120 | Cloud | Battery/weight-sensing fountain with heater, water temp, and filter/pump reset. Cloud-polled (see note). |
 | **Air Purifier** | PETSNOWY Pet Air Purifier | - | 3.4 | TVOC-sensing air purifier with 6-speed fan, ionizer, and auto-off timer |
 | **Pet Feeder** | SNOW+ Automatic Pet Feeder | PS-020 | 3.3 | Automatic feeder with food level detection and on-demand dispensing |
+
+> **Note:** All devices use the local Tuya protocol except the **OilClear AI Water Fountain**, which is power-managed and drops its LAN listener between syncs — so it's polled via the **Tuya Cloud API** instead. Setup asks for your Tuya IoT project's Access ID, Access Secret, and region rather than an IP/local key.
 
 ## Installation
 
@@ -71,11 +73,9 @@
 1. Go to **Settings** > **Devices & Services** > **Add Integration**
 2. Search for **PetSnowy**
 3. Select your device type (Litterbox, Fountain, OilClear Fountain, Purifier, or Feeder)
-4. Enter the Tuya credentials for your device:
-   - **Device ID** - Tuya device identifier
-   - **IP Address** - local network address of the device
-   - **Local Key** - Tuya local encryption key
-   - **Protocol Version** - auto-filled based on device type (3.3 or 3.4)
+4. Enter credentials for your device:
+   - **Local devices** (all except OilClear): Device ID, IP Address, Local Key, and Protocol Version (auto-filled 3.3/3.4)
+   - **OilClear** (cloud): Device ID, Data-centre Region, and your Tuya IoT **Access ID** and **Access Secret**
 
 The integration validates connectivity before completing setup.
 
@@ -112,7 +112,7 @@ Follow the wizard prompts - you'll need a [Tuya IoT Platform](https://iot.tuya.c
 | **Number** | Filter reminder (0–90 days) |
 | **Select** | Work mode (normal/night) |
 
-### OilClear AI Water Fountain (PS-120)
+### OilClear AI Water Fountain (PS-120) — cloud-polled
 
 | Platform | Entities |
 |----------|----------|
