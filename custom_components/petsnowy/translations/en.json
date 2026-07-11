@@ -83,6 +83,18 @@
       "pump_time": {
         "name": "Pump cleaning days"
       },
+      "curr_weight": {
+        "name": "Water weight"
+      },
+      "water_temp": {
+        "name": "Water temperature"
+      },
+      "battery_capacity": {
+        "name": "Battery"
+      },
+      "battery_charge_status": {
+        "name": "Charge status"
+      },
       "tvoc": {
         "name": "TVOC"
       },
@@ -207,6 +219,9 @@
       },
       "power": {
         "name": "Power"
+      },
+      "heating": {
+        "name": "Heating"
       },
       "anion": {
         "name": "Ionizer"

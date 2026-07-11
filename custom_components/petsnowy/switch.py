@@ -13,6 +13,7 @@ from . import PetSnowyConfigEntry
 from .const import (
     DEVICE_TYPE_FOUNTAIN,
     DEVICE_TYPE_LITTERBOX,
+    DEVICE_TYPE_OILCLEAR,
     DEVICE_TYPE_PURIFIER,
 )
 from .coordinator import PetSnowyCoordinator
@@ -101,6 +102,31 @@ FOUNTAIN_SWITCHES: tuple[PetSnowySwitchDescription, ...] = (
     ),
 )
 
+OILCLEAR_SWITCHES: tuple[PetSnowySwitchDescription, ...] = (
+    PetSnowySwitchDescription(
+        key="power",
+        translation_key="power",
+        icon="mdi:power",
+        value_fn="switch",
+        on_fn="turn_on",
+        off_fn="turn_off",
+    ),
+    PetSnowySwitchDescription(
+        key="heating",
+        translation_key="heating",
+        icon="mdi:radiator",
+        value_fn="heating",
+        set_fn="set_heating",
+    ),
+    PetSnowySwitchDescription(
+        key="oilclear_light",
+        translation_key="light",
+        icon="mdi:lightbulb",
+        value_fn="light",
+        set_fn="set_light",
+    ),
+)
+
 PURIFIER_SWITCHES: tuple[PetSnowySwitchDescription, ...] = (
     PetSnowySwitchDescription(
         key="anion",
@@ -114,6 +140,7 @@ PURIFIER_SWITCHES: tuple[PetSnowySwitchDescription, ...] = (
 _SWITCHES_BY_TYPE: dict[str, tuple[PetSnowySwitchDescription, ...]] = {
     DEVICE_TYPE_LITTERBOX: LITTERBOX_SWITCHES,
     DEVICE_TYPE_FOUNTAIN: FOUNTAIN_SWITCHES,
+    DEVICE_TYPE_OILCLEAR: OILCLEAR_SWITCHES,
     DEVICE_TYPE_PURIFIER: PURIFIER_SWITCHES,
 }
 

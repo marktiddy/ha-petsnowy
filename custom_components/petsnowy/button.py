@@ -13,6 +13,7 @@ from .const import (
     DEVICE_TYPE_FEEDER,
     DEVICE_TYPE_FOUNTAIN,
     DEVICE_TYPE_LITTERBOX,
+    DEVICE_TYPE_OILCLEAR,
 )
 from .coordinator import PetSnowyCoordinator
 from .entity import PetSnowyEntity
@@ -98,6 +99,27 @@ FOUNTAIN_BUTTONS: tuple[PetSnowyButtonDescription, ...] = (
     ),
 )
 
+OILCLEAR_BUTTONS: tuple[PetSnowyButtonDescription, ...] = (
+    PetSnowyButtonDescription(
+        key="oilclear_reset_filter",
+        translation_key="reset_filter",
+        icon="mdi:air-filter",
+        press_fn="reset_filter",
+    ),
+    PetSnowyButtonDescription(
+        key="reset_pump",
+        translation_key="reset_pump",
+        icon="mdi:pump",
+        press_fn="reset_pump",
+    ),
+    PetSnowyButtonDescription(
+        key="oilclear_calibrate_weight",
+        translation_key="calibrate_weight",
+        icon="mdi:scale-balance",
+        press_fn="reset_weight",
+    ),
+)
+
 FEEDER_BUTTONS: tuple[PetSnowyButtonDescription, ...] = (
     PetSnowyButtonDescription(
         key="quick_feed",
@@ -110,6 +132,7 @@ FEEDER_BUTTONS: tuple[PetSnowyButtonDescription, ...] = (
 _BUTTONS_BY_TYPE: dict[str, tuple[PetSnowyButtonDescription, ...]] = {
     DEVICE_TYPE_LITTERBOX: LITTERBOX_BUTTONS,
     DEVICE_TYPE_FOUNTAIN: FOUNTAIN_BUTTONS,
+    DEVICE_TYPE_OILCLEAR: OILCLEAR_BUTTONS,
     DEVICE_TYPE_FEEDER: FEEDER_BUTTONS,
 }
 

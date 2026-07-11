@@ -45,10 +45,9 @@
 |--------|-------------|-------|----------|-------------|
 | **Self-Cleaning Litter Box** | SNOW+ Automatic Self-Cleaning Litter Box | PS-001 | 3.4 | Smart litter box with auto-clean, deodorization, cat weight tracking, and safety sensors |
 | **Water Fountain** | SNOW+ Automatic Pet Water Fountain | PS-010 | 3.3 | Filtered water fountain with normal/night modes and pump monitoring |
+| **OilClear AI Water Fountain** | OilClear A.I Series Wireless Weight-Sensing Pet Fountain | PS-120 | 3.3 | Filtered water fountain with pump monitoring and filter/pump reset |
 | **Air Purifier** | PETSNOWY Pet Air Purifier | - | 3.4 | TVOC-sensing air purifier with 6-speed fan, ionizer, and auto-off timer |
 | **Pet Feeder** | SNOW+ Automatic Pet Feeder | PS-020 | 3.3 | Automatic feeder with food level detection and on-demand dispensing |
-
-> **Note:** The OilClear A.I Series Wireless Weight-Sensing Pet Fountain is a newer model and is not yet supported. Contributions welcome!
 
 ## Installation
 
@@ -71,7 +70,7 @@
 
 1. Go to **Settings** > **Devices & Services** > **Add Integration**
 2. Search for **PetSnowy**
-3. Select your device type (Litterbox, Fountain, Purifier, or Feeder)
+3. Select your device type (Litterbox, Fountain, OilClear Fountain, Purifier, or Feeder)
 4. Enter the Tuya credentials for your device:
    - **Device ID** - Tuya device identifier
    - **IP Address** - local network address of the device
@@ -111,6 +110,16 @@ Follow the wizard prompts - you'll need a [Tuya IoT Platform](https://iot.tuya.c
 | **Switch** | Power, indicator light |
 | **Button** | Reset filter, reset pump |
 | **Number** | Filter reminder (0–90 days) |
+| **Select** | Work mode (normal/night) |
+
+### OilClear AI Water Fountain (PS-120)
+
+| Platform | Entities |
+|----------|----------|
+| **Sensor** | Water weight (g), water temperature (°C), battery (%), filter days remaining, pump cleaning days, charge status (diagnostic) |
+| **Switch** | Power, heating, indicator light |
+| **Button** | Reset filter, reset pump, calibrate weight |
+| **Number** | Filter reminder (0–30 days) |
 | **Select** | Work mode (normal/night) |
 
 ### PETSNOWY Air Purifier

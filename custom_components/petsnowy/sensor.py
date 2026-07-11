@@ -13,7 +13,13 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import UnitOfMass, UnitOfTime
+from homeassistant.const import (
+    PERCENTAGE,
+    EntityCategory,
+    UnitOfMass,
+    UnitOfTemperature,
+    UnitOfTime,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -24,6 +30,7 @@ from .const import (
     DEVICE_TYPE_FEEDER,
     DEVICE_TYPE_FOUNTAIN,
     DEVICE_TYPE_LITTERBOX,
+    DEVICE_TYPE_OILCLEAR,
     DEVICE_TYPE_PURIFIER,
 )
 from .coordinator import PetSnowyCoordinator
@@ -305,6 +312,56 @@ FOUNTAIN_SENSORS: tuple[PetSnowySensorDescription, ...] = (
     ),
 )
 
+OILCLEAR_SENSORS: tuple[PetSnowySensorDescription, ...] = (
+    PetSnowySensorDescription(
+        key="curr_weight",
+        translation_key="curr_weight",
+        native_unit_of_measurement=UnitOfMass.GRAMS,
+        device_class=SensorDeviceClass.WEIGHT,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn="curr_weight",
+    ),
+    PetSnowySensorDescription(
+        key="water_temp",
+        translation_key="water_temp",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn="water_temp",
+    ),
+    PetSnowySensorDescription(
+        key="battery_capacity",
+        translation_key="battery_capacity",
+        native_unit_of_measurement=PERCENTAGE,
+        device_class=SensorDeviceClass.BATTERY,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn="battery_capacity",
+    ),
+    PetSnowySensorDescription(
+        key="oilclear_filter_days",
+        translation_key="filter_days",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        icon="mdi:air-filter",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn="filter_days",
+    ),
+    PetSnowySensorDescription(
+        key="pump_time",
+        translation_key="pump_time",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        icon="mdi:pump",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn="pump_time",
+    ),
+    PetSnowySensorDescription(
+        key="battery_charge_status",
+        translation_key="battery_charge_status",
+        icon="mdi:battery-charging",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn="battery_charge_status",
+    ),
+)
+
 PURIFIER_SENSORS: tuple[PetSnowySensorDescription, ...] = (
     PetSnowySensorDescription(
         key="tvoc",
@@ -346,6 +403,7 @@ FEEDER_SENSORS: tuple[PetSnowySensorDescription, ...] = (
 _SENSORS_BY_TYPE: dict[str, tuple[PetSnowySensorDescription, ...]] = {
     DEVICE_TYPE_LITTERBOX: LITTERBOX_SENSORS,
     DEVICE_TYPE_FOUNTAIN: FOUNTAIN_SENSORS,
+    DEVICE_TYPE_OILCLEAR: OILCLEAR_SENSORS,
     DEVICE_TYPE_PURIFIER: PURIFIER_SENSORS,
     DEVICE_TYPE_FEEDER: FEEDER_SENSORS,
 }

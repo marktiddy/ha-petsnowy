@@ -36,15 +36,20 @@ from .const import (
     DEVICE_TYPE_FEEDER,
     DEVICE_TYPE_FOUNTAIN,
     DEVICE_TYPE_LITTERBOX,
+    DEVICE_TYPE_OILCLEAR,
     DEVICE_TYPE_PURIFIER,
     DOMAIN,
 )
+from .oilclear import OilClearFountain
 
 _LOGGER = logging.getLogger(__name__)
 
 _DEVICE_CLASSES: dict[str, type] = {
     DEVICE_TYPE_LITTERBOX: PetSnowy,
     DEVICE_TYPE_FOUNTAIN: Fountain,
+    # The OilClear (PS-120) shares DPs 1-7 with the PS-010 fountain but adds a
+    # battery, heater, and weight sensor, so it uses a dedicated local driver.
+    DEVICE_TYPE_OILCLEAR: OilClearFountain,
     DEVICE_TYPE_PURIFIER: Purifier,
     DEVICE_TYPE_FEEDER: Feeder,
 }

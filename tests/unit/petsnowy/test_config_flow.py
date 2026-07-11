@@ -17,6 +17,7 @@ from custom_components.petsnowy.const import (
     DEVICE_TYPE_FEEDER,
     DEVICE_TYPE_FOUNTAIN,
     DEVICE_TYPE_LITTERBOX,
+    DEVICE_TYPE_OILCLEAR,
     DEVICE_TYPE_PURIFIER,
     DOMAIN,
 )
@@ -30,6 +31,7 @@ class TestConfigConstants:
         for device_type in (
             DEVICE_TYPE_LITTERBOX,
             DEVICE_TYPE_FOUNTAIN,
+            DEVICE_TYPE_OILCLEAR,
             DEVICE_TYPE_PURIFIER,
             DEVICE_TYPE_FEEDER,
         ):
@@ -43,6 +45,10 @@ class TestConfigConstants:
     def test_fountain_default_version(self) -> None:
         """Fountain defaults to Tuya protocol 3.3."""
         assert DEFAULT_VERSIONS[DEVICE_TYPE_FOUNTAIN] == 3.3
+
+    def test_oilclear_default_version(self) -> None:
+        """OilClear fountain defaults to Tuya protocol 3.3."""
+        assert DEFAULT_VERSIONS[DEVICE_TYPE_OILCLEAR] == 3.3
 
     def test_purifier_default_version(self) -> None:
         """Purifier defaults to Tuya protocol 3.4."""

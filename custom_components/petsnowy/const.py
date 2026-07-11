@@ -16,12 +16,14 @@ DEFAULT_PIR_GRACE_MINUTES = 5
 
 DEVICE_TYPE_LITTERBOX = "litterbox"
 DEVICE_TYPE_FOUNTAIN = "fountain"
+DEVICE_TYPE_OILCLEAR = "oilclear"
 DEVICE_TYPE_PURIFIER = "purifier"
 DEVICE_TYPE_FEEDER = "feeder"
 
 DEVICE_TYPES: dict[str, str] = {
     DEVICE_TYPE_LITTERBOX: "Snow+ Litterbox",
     DEVICE_TYPE_FOUNTAIN: "Water Fountain",
+    DEVICE_TYPE_OILCLEAR: "OilClear AI Water Fountain",
     DEVICE_TYPE_PURIFIER: "Air Purifier",
     DEVICE_TYPE_FEEDER: "Pet Feeder",
 }
@@ -29,6 +31,7 @@ DEVICE_TYPES: dict[str, str] = {
 DEFAULT_VERSIONS: dict[str, float] = {
     DEVICE_TYPE_LITTERBOX: 3.4,
     DEVICE_TYPE_FOUNTAIN: 3.3,
+    DEVICE_TYPE_OILCLEAR: 3.3,
     DEVICE_TYPE_PURIFIER: 3.4,
     DEVICE_TYPE_FEEDER: 3.3,
 }

@@ -9,7 +9,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import PetSnowyConfigEntry
-from .const import DEVICE_TYPE_FOUNTAIN, DEVICE_TYPE_PURIFIER
+from .const import (
+    DEVICE_TYPE_FOUNTAIN,
+    DEVICE_TYPE_OILCLEAR,
+    DEVICE_TYPE_PURIFIER,
+)
 from .coordinator import PetSnowyCoordinator
 from .entity import PetSnowyEntity
 
@@ -44,8 +48,20 @@ PURIFIER_SELECTS: tuple[PetSnowySelectDescription, ...] = (
     ),
 )
 
+OILCLEAR_SELECTS: tuple[PetSnowySelectDescription, ...] = (
+    PetSnowySelectDescription(
+        key="work_mode",
+        translation_key="work_mode",
+        icon="mdi:water-pump",
+        options=["normal", "night"],
+        value_fn="work_mode",
+        set_fn="set_work_mode",
+    ),
+)
+
 _SELECTS_BY_TYPE: dict[str, tuple[PetSnowySelectDescription, ...]] = {
     DEVICE_TYPE_FOUNTAIN: FOUNTAIN_SELECTS,
+    DEVICE_TYPE_OILCLEAR: OILCLEAR_SELECTS,
     DEVICE_TYPE_PURIFIER: PURIFIER_SELECTS,
 }
 

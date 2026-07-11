@@ -16,6 +16,7 @@ from custom_components.petsnowy.const import (
     DEVICE_TYPE_FEEDER,
     DEVICE_TYPE_FOUNTAIN,
     DEVICE_TYPE_LITTERBOX,
+    DEVICE_TYPE_OILCLEAR,
     DEVICE_TYPE_PURIFIER,
 )
 
@@ -32,6 +33,14 @@ MOCK_FOUNTAIN_CONFIG: dict[str, Any] = {
     CONF_DEVICE_ID: "test_fountain_001",
     CONF_ADDRESS: "192.168.1.101",
     CONF_LOCAL_KEY: "test_local_key_def",
+    CONF_VERSION: 3.3,
+}
+
+MOCK_OILCLEAR_CONFIG: dict[str, Any] = {
+    CONF_DEVICE_TYPE: DEVICE_TYPE_OILCLEAR,
+    CONF_DEVICE_ID: "test_oilclear_001",
+    CONF_ADDRESS: "192.168.1.104",
+    CONF_LOCAL_KEY: "test_local_key_mno",
     CONF_VERSION: 3.3,
 }
 
@@ -80,6 +89,22 @@ MOCK_FOUNTAIN_DPS: dict[str, Any] = {
     "102": True,
 }
 
+# The OilClear (PS-120) shares DPs 1-7 with the PS-010 fountain and adds a
+# heater (101), battery (102/106), water temperature (104), and weight (108).
+MOCK_OILCLEAR_DPS: dict[str, Any] = {
+    "1": True,
+    "2": "normal",
+    "3": 28,
+    "4": 0,
+    "7": 25,
+    "101": False,
+    "102": "charge",
+    "104": 5,
+    "106": 100,
+    "108": 2881,
+    "109": True,
+}
+
 MOCK_PURIFIER_DPS: dict[str, Any] = {
     "1": True,
     "3": "auto",
@@ -117,6 +142,18 @@ def mock_fountain_device() -> AsyncMock:
 
     device = AsyncMock()
     device.get_state = AsyncMock(return_value=FountainState.from_dps(MOCK_FOUNTAIN_DPS))
+    device.connect = AsyncMock()
+    device.disconnect = AsyncMock()
+    return device
+
+
+@pytest.fixture
+def mock_oilclear_device() -> AsyncMock:
+    """Return a mocked OilClear fountain device."""
+    from custom_components.petsnowy.oilclear import OilClearState
+
+    device = AsyncMock()
+    device.get_state = AsyncMock(return_value=OilClearState.from_dps(MOCK_OILCLEAR_DPS))
     device.connect = AsyncMock()
     device.disconnect = AsyncMock()
     return device

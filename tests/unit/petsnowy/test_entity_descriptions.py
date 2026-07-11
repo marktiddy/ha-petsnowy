@@ -10,6 +10,7 @@ from custom_components.petsnowy.const import (
     DEVICE_TYPE_FEEDER,
     DEVICE_TYPE_FOUNTAIN,
     DEVICE_TYPE_LITTERBOX,
+    DEVICE_TYPE_OILCLEAR,
     DEVICE_TYPE_PURIFIER,
 )
 from custom_components.petsnowy.number import _NUMBERS_BY_TYPE
@@ -66,6 +67,30 @@ class TestFountainEntities:
         assert len(_NUMBERS_BY_TYPE[DEVICE_TYPE_FOUNTAIN]) == 1
 
 
+class TestOilClearEntities:
+    """Validate OilClear fountain entity descriptions are complete."""
+
+    def test_has_sensors(self) -> None:
+        """OilClear exposes weight, battery, temperature, and filter sensors."""
+        assert len(_SENSORS_BY_TYPE[DEVICE_TYPE_OILCLEAR]) == 6
+
+    def test_has_switches(self) -> None:
+        """OilClear exposes power, heating, and light switches."""
+        assert len(_SWITCHES_BY_TYPE[DEVICE_TYPE_OILCLEAR]) == 3
+
+    def test_has_buttons(self) -> None:
+        """OilClear exposes filter/pump reset and weight calibration buttons."""
+        assert len(_BUTTONS_BY_TYPE[DEVICE_TYPE_OILCLEAR]) == 3
+
+    def test_has_numbers(self) -> None:
+        """OilClear exposes number entities."""
+        assert len(_NUMBERS_BY_TYPE[DEVICE_TYPE_OILCLEAR]) == 1
+
+    def test_has_selects(self) -> None:
+        """OilClear exposes the work-mode select."""
+        assert len(_SELECTS_BY_TYPE[DEVICE_TYPE_OILCLEAR]) == 1
+
+
 class TestPurifierEntities:
     """Validate purifier entity descriptions are complete."""
 
@@ -110,6 +135,7 @@ class TestUniqueKeys:
         [
             DEVICE_TYPE_LITTERBOX,
             DEVICE_TYPE_FOUNTAIN,
+            DEVICE_TYPE_OILCLEAR,
             DEVICE_TYPE_PURIFIER,
             DEVICE_TYPE_FEEDER,
         ],
@@ -125,6 +151,7 @@ class TestUniqueKeys:
         [
             DEVICE_TYPE_LITTERBOX,
             DEVICE_TYPE_FOUNTAIN,
+            DEVICE_TYPE_OILCLEAR,
             DEVICE_TYPE_PURIFIER,
         ],
     )
@@ -136,7 +163,12 @@ class TestUniqueKeys:
 
     @pytest.mark.parametrize(
         "device_type",
-        [DEVICE_TYPE_LITTERBOX, DEVICE_TYPE_FOUNTAIN, DEVICE_TYPE_FEEDER],
+        [
+            DEVICE_TYPE_LITTERBOX,
+            DEVICE_TYPE_FOUNTAIN,
+            DEVICE_TYPE_OILCLEAR,
+            DEVICE_TYPE_FEEDER,
+        ],
     )
     def test_button_keys_unique(self, device_type: str) -> None:
         """Button keys are unique per device type."""

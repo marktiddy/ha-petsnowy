@@ -10,7 +10,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import PetSnowyConfigEntry
-from .const import DEVICE_TYPE_FOUNTAIN, DEVICE_TYPE_LITTERBOX
+from .const import (
+    DEVICE_TYPE_FOUNTAIN,
+    DEVICE_TYPE_LITTERBOX,
+    DEVICE_TYPE_OILCLEAR,
+)
 from .coordinator import PetSnowyCoordinator
 from .entity import PetSnowyEntity
 
@@ -51,9 +55,24 @@ FOUNTAIN_NUMBERS: tuple[PetSnowyNumberDescription, ...] = (
     ),
 )
 
+OILCLEAR_NUMBERS: tuple[PetSnowyNumberDescription, ...] = (
+    PetSnowyNumberDescription(
+        key="filter_reminder",
+        translation_key="filter_reminder",
+        icon="mdi:air-filter",
+        native_min_value=0,
+        native_max_value=30,
+        native_step=1,
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_fn="filter_life",
+        set_fn="set_filter_reminder",
+    ),
+)
+
 _NUMBERS_BY_TYPE: dict[str, tuple[PetSnowyNumberDescription, ...]] = {
     DEVICE_TYPE_LITTERBOX: LITTERBOX_NUMBERS,
     DEVICE_TYPE_FOUNTAIN: FOUNTAIN_NUMBERS,
+    DEVICE_TYPE_OILCLEAR: OILCLEAR_NUMBERS,
 }
 
 
