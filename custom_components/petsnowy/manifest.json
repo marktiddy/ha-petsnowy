@@ -11,5 +11,5 @@
     "petsnowy @ git+https://github.com/hypercubian/petsnowy-py.git@v0.2.0",
     "tinytuya>=1.15"
   ],
-  "version": "0.4.0"
+  "version": "0.4.1"
 }

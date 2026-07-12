@@ -120,7 +120,7 @@ Follow the wizard prompts - you'll need a [Tuya IoT Platform](https://iot.tuya.c
 | **Switch** | Power, heating, indicator light |
 | **Button** | Reset filter, reset pump, calibrate weight |
 | **Number** | Filter reminder (0–30 days) |
-| **Select** | Work mode (normal/night) |
+| **Select** | Work mode (normal/intelligent) |
 
 ### PETSNOWY Air Purifier
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from unittest.mock import MagicMock
 
 import pytest
@@ -12,9 +13,9 @@ from custom_components.petsnowy.oilclear import (
     OilClearState,
 )
 
-FULL_STATUS = [
+FULL_PROPERTIES = [
     {"code": "switch", "value": True},
-    {"code": "work_mode", "value": "night"},
+    {"code": "work_mode", "value": "intelligent"},
     {"code": "filter_days", "value": 28},
     {"code": "pump_time", "value": 3},
     {"code": "filter_life", "value": 25},
@@ -22,19 +23,23 @@ FULL_STATUS = [
     {"code": "battery_charge_status", "value": "charge"},
     {"code": "water_temp", "value": 5},
     {"code": "battery_capacity", "value": 100},
-    {"code": "curr_weight", "value": 2881},
+    {"code": "curr_weight", "value": 3036},
     {"code": "light", "value": True},
 ]
 
+DEVICE_ID = "dev123"
+PROPERTIES_URL = f"/v2.0/cloud/thing/{DEVICE_ID}/shadow/properties"
+ISSUE_URL = f"/v2.0/cloud/thing/{DEVICE_ID}/shadow/properties/issue"
+
 
 class TestOilClearState:
-    """Validate cloud status parsing for the OilClear (PS-120)."""
+    """Validate thing-shadow property parsing for the OilClear (PS-120)."""
 
-    def test_parses_full_status(self) -> None:
-        """A full cloud status payload maps to the expected fields."""
-        state = OilClearState.from_status(FULL_STATUS)
+    def test_parses_full_properties(self) -> None:
+        """A full shadow-properties payload maps to the expected fields."""
+        state = OilClearState.from_properties(FULL_PROPERTIES)
         assert state.switch is True
-        assert state.work_mode == "night"
+        assert state.work_mode == "intelligent"
         assert state.filter_days == 28
         assert state.pump_time == 3
         assert state.filter_life == 25
@@ -42,12 +47,12 @@ class TestOilClearState:
         assert state.battery_charge_status == "charge"
         assert state.water_temp == 5
         assert state.battery_capacity == 100
-        assert state.curr_weight == 2881
+        assert state.curr_weight == 3036
         assert state.light is True
 
     def test_light_and_charge_status_do_not_collide(self) -> None:
         """Light and battery charge status are distinct codes."""
-        state = OilClearState.from_status(
+        state = OilClearState.from_properties(
             [
                 {"code": "battery_charge_status", "value": "charge"},
                 {"code": "light", "value": False},
@@ -58,37 +63,31 @@ class TestOilClearState:
 
     def test_missing_codes_default_safely(self) -> None:
         """Absent codes fall back to defaults instead of raising."""
-        state = OilClearState.from_status([])
+        state = OilClearState.from_properties([])
         assert state.switch is False
         assert state.work_mode == "normal"
         assert state.curr_weight == 0
         assert state.battery_charge_status == ""
 
-    def test_unknown_work_mode_falls_back_to_normal(self) -> None:
-        """An unexpected work_mode value degrades gracefully."""
-        state = OilClearState.from_status([{"code": "work_mode", "value": "bogus"}])
-        assert state.work_mode == "normal"
-
 
 class TestOilClearCommands:
-    """Validate that commands issue the correct Tuya cloud codes."""
+    """Validate that commands issue the correct thing-model properties."""
 
     def _device(self) -> OilClearCloudFountain:
-        dev = OilClearCloudFountain("dev123", "eu", "id", "secret")
+        dev = OilClearCloudFountain(DEVICE_ID, "eu", "id", "secret")
         dev._cloud = MagicMock()
-        dev._cloud.sendcommand = MagicMock(return_value={"success": True})
-        dev._cloud.getstatus = MagicMock(
-            return_value={"success": True, "result": FULL_STATUS}
+        dev._cloud.cloudrequest = MagicMock(
+            return_value={"success": True, "result": {"properties": FULL_PROPERTIES}}
         )
         return dev
 
     @pytest.mark.asyncio
-    async def test_turn_on_sends_switch(self) -> None:
-        """Power on issues the switch code."""
+    async def test_turn_on_issues_switch(self) -> None:
+        """Power on issues the switch property to the issue endpoint."""
         dev = self._device()
         await dev.turn_on()
-        dev._cloud.sendcommand.assert_called_once_with(
-            "dev123", {"commands": [{"code": "switch", "value": True}]}
+        dev._cloud.cloudrequest.assert_called_once_with(
+            ISSUE_URL, "POST", {"properties": json.dumps({"switch": True})}
         )
 
     @pytest.mark.asyncio
@@ -96,27 +95,45 @@ class TestOilClearCommands:
         """The indicator light is its own code, not the charge status."""
         dev = self._device()
         await dev.set_light(True)
-        dev._cloud.sendcommand.assert_called_once_with(
-            "dev123", {"commands": [{"code": OilClearCode.LIGHT, "value": True}]}
+        dev._cloud.cloudrequest.assert_called_once_with(
+            ISSUE_URL,
+            "POST",
+            {"properties": json.dumps({OilClearCode.LIGHT: True})},
         )
 
     @pytest.mark.asyncio
-    async def test_set_heating_sends_heating_code(self) -> None:
-        """Heating toggles the heating code."""
+    async def test_set_heating_issues_heating(self) -> None:
+        """Heating toggles the heating property."""
         dev = self._device()
         await dev.set_heating(False)
-        dev._cloud.sendcommand.assert_called_once_with(
-            "dev123", {"commands": [{"code": "heating", "value": False}]}
+        dev._cloud.cloudrequest.assert_called_once_with(
+            ISSUE_URL, "POST", {"properties": json.dumps({"heating": False})}
         )
 
     @pytest.mark.asyncio
-    async def test_reset_weight_sends_button(self) -> None:
-        """Weight calibration issues the reset_weight code."""
+    async def test_reset_weight_issues_button(self) -> None:
+        """Weight calibration issues the reset_weight property."""
         dev = self._device()
         await dev.reset_weight()
-        dev._cloud.sendcommand.assert_called_once_with(
-            "dev123", {"commands": [{"code": "reset_weight", "value": True}]}
+        dev._cloud.cloudrequest.assert_called_once_with(
+            ISSUE_URL, "POST", {"properties": json.dumps({"reset_weight": True})}
         )
+
+    @pytest.mark.asyncio
+    async def test_set_work_mode_accepts_intelligent(self) -> None:
+        """Intelligent is a valid work mode for this device."""
+        dev = self._device()
+        await dev.set_work_mode("intelligent")
+        dev._cloud.cloudrequest.assert_called_once_with(
+            ISSUE_URL, "POST", {"properties": json.dumps({"work_mode": "intelligent"})}
+        )
+
+    @pytest.mark.asyncio
+    async def test_set_work_mode_rejects_night(self) -> None:
+        """The PS-010's 'night' mode is not valid on the OilClear."""
+        dev = self._device()
+        with pytest.raises(ValueError):
+            await dev.set_work_mode("night")
 
     @pytest.mark.asyncio
     async def test_filter_reminder_out_of_range_raises(self) -> None:
@@ -126,13 +143,14 @@ class TestOilClearCommands:
             await dev.set_filter_reminder(60)
 
     @pytest.mark.asyncio
-    async def test_get_state_parses_cloud_status(self) -> None:
-        """get_state maps the cloud status payload to an OilClearState."""
+    async def test_get_state_parses_shadow_properties(self) -> None:
+        """get_state reads the shadow properties endpoint and parses them."""
         dev = self._device()
         state = await dev.get_state()
+        dev._cloud.cloudrequest.assert_called_once_with(PROPERTIES_URL)
         assert isinstance(state, OilClearState)
-        assert state.curr_weight == 2881
-        assert state.switch is True
+        assert state.curr_weight == 3036
+        assert state.work_mode == "intelligent"
 
     @pytest.mark.asyncio
     async def test_get_state_raises_on_failure(self) -> None:
@@ -140,7 +158,7 @@ class TestOilClearCommands:
         from petsnowy import ConnectionError as PetSnowyConnectionError
 
         dev = self._device()
-        dev._cloud.getstatus = MagicMock(
+        dev._cloud.cloudrequest = MagicMock(
             return_value={"success": False, "msg": "device offline"}
         )
         with pytest.raises(PetSnowyConnectionError):
@@ -152,7 +170,7 @@ class TestOilClearCommands:
         from petsnowy import CommandError
 
         dev = self._device()
-        dev._cloud.sendcommand = MagicMock(
+        dev._cloud.cloudrequest = MagicMock(
             return_value={"success": False, "msg": "nope"}
         )
         with pytest.raises(CommandError):

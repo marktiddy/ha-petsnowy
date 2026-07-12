@@ -92,18 +92,19 @@ MOCK_FOUNTAIN_DPS: dict[str, Any] = {
     "102": True,
 }
 
-# The OilClear (PS-120) is cloud-polled; its status is a code/value list.
-MOCK_OILCLEAR_STATUS: list[dict[str, Any]] = [
+# The OilClear (PS-120) is cloud-polled via the Tuya thing/shadow model;
+# its state is a code/value properties list.
+MOCK_OILCLEAR_PROPERTIES: list[dict[str, Any]] = [
     {"code": "switch", "value": True},
-    {"code": "work_mode", "value": "normal"},
+    {"code": "work_mode", "value": "intelligent"},
     {"code": "filter_days", "value": 28},
     {"code": "pump_time", "value": 0},
     {"code": "filter_life", "value": 25},
-    {"code": "heating", "value": False},
+    {"code": "heating", "value": True},
     {"code": "battery_charge_status", "value": "charge"},
     {"code": "water_temp", "value": 5},
     {"code": "battery_capacity", "value": 100},
-    {"code": "curr_weight", "value": 2881},
+    {"code": "curr_weight", "value": 3036},
     {"code": "light", "value": True},
 ]
 
@@ -156,7 +157,7 @@ def mock_oilclear_device() -> AsyncMock:
 
     device = AsyncMock()
     device.get_state = AsyncMock(
-        return_value=OilClearState.from_status(MOCK_OILCLEAR_STATUS)
+        return_value=OilClearState.from_properties(MOCK_OILCLEAR_PROPERTIES)
     )
     device.connect = AsyncMock()
     device.disconnect = AsyncMock()

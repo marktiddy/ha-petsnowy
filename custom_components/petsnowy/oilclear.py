@@ -7,29 +7,31 @@ driver talks to it through the Tuya Cloud API (tinytuya.Cloud) instead, which
 returns the last-reported state regardless of whether the device is currently
 awake on the LAN.
 
-The cloud status/command API is code-based (``switch``, ``curr_weight`` …)
-rather than numeric DP ids, so :class:`OilClearState` is built from the code map.
+This device only reports through Tuya's newer *thing / device-shadow* model, so
+reads use ``/v2.0/cloud/thing/{id}/shadow/properties`` and writes use
+``/v2.0/cloud/thing/{id}/shadow/properties/issue`` rather than tinytuya's legacy
+``iot-03/devices`` status/command helpers (which return nothing for it). Both
+speak code/value pairs (``switch``, ``curr_weight`` …).
 """
 
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from dataclasses import dataclass
 from typing import Any
 
 import tinytuya
-from petsnowy import (
-    CommandError,
-)
-from petsnowy import (
-    ConnectionError as PetSnowyConnectionError,  # type: ignore[attr-defined]
-)
-from petsnowy import (
-    WorkMode,
-)
+from petsnowy import CommandError  # type: ignore[attr-defined]
+from petsnowy import ConnectionError as PetSnowyConnectionError
 
 _LOGGER = logging.getLogger(__name__)
+
+# Work modes reported by DP2. Note this is NOT the PS-010 fountain's
+# normal/night pair — the OilClear uses normal/intelligent.
+WORK_MODES: tuple[str, ...] = ("normal", "intelligent")
+DEFAULT_WORK_MODE = "normal"
 
 
 class OilClearCode:
@@ -40,7 +42,7 @@ class OilClearCode:
     """
 
     SWITCH = "switch"
-    WORK_MODE = "work_mode"  # "normal", "night"
+    WORK_MODE = "work_mode"  # "normal", "intelligent"
     FILTER_DAYS = "filter_days"  # filter days remaining (read-only)
     PUMP_TIME = "pump_time"  # pump cleaning days remaining (read-only)
     FILTER_RESET = "filter_reset"  # momentary button
@@ -60,7 +62,7 @@ class OilClearState:
     """Parsed snapshot of OilClear fountain state."""
 
     switch: bool
-    work_mode: WorkMode
+    work_mode: str
     filter_days: int
     pump_time: int
     filter_life: int
@@ -73,13 +75,13 @@ class OilClearState:
     raw: dict[str, Any]
 
     @classmethod
-    def from_status(cls, result: list[dict[str, Any]]) -> OilClearState:
-        """Build an OilClearState from a Tuya cloud status result list.
+    def from_properties(cls, properties: list[dict[str, Any]]) -> OilClearState:
+        """Build an OilClearState from a thing-shadow ``properties`` list.
 
-        ``result`` is the ``[{"code": ..., "value": ...}, ...]`` payload returned
-        by ``Cloud.getstatus``.
+        ``properties`` is the ``[{"code": ..., "value": ...}, ...]`` payload
+        returned under ``result.properties`` by the shadow/properties endpoint.
         """
-        values = {item["code"]: item["value"] for item in result if "code" in item}
+        values = {item["code"]: item["value"] for item in properties if "code" in item}
         return cls._from_code_map(values)
 
     @classmethod
@@ -96,14 +98,9 @@ class OilClearState:
             v = values.get(code)
             return str(v) if v is not None else default
 
-        try:
-            work_mode = WorkMode(values.get(OilClearCode.WORK_MODE, "normal"))
-        except ValueError:
-            work_mode = WorkMode.NORMAL
-
         return cls(
             switch=_bool(OilClearCode.SWITCH),
-            work_mode=work_mode,
+            work_mode=_str(OilClearCode.WORK_MODE, DEFAULT_WORK_MODE),
             filter_days=_int(OilClearCode.FILTER_DAYS),
             pump_time=_int(OilClearCode.PUMP_TIME),
             filter_life=_int(OilClearCode.FILTER_LIFE),
@@ -137,11 +134,13 @@ class OilClearCloudFountain:
         self._client_id = client_id
         self._client_secret = client_secret
         self._cloud: tinytuya.Cloud | None = None
+        self._properties_url = f"/v2.0/cloud/thing/{device_id}/shadow/properties"
+        self._issue_url = f"/v2.0/cloud/thing/{device_id}/shadow/properties/issue"
 
     # -- Connection lifecycle --------------------------------------------------
 
     async def connect(self) -> None:
-        """Authenticate with the Tuya Cloud and cache the client."""
+        """Authenticate with the Tuya Cloud and confirm the device is reachable."""
         cloud = await asyncio.to_thread(
             tinytuya.Cloud,
             apiRegion=self._region,
@@ -154,6 +153,9 @@ class OilClearCloudFountain:
                 f"Tuya Cloud authentication failed: {err or 'no token returned'}"
             )
         self._cloud = cloud
+        # Validate the device id / permission up front so config-flow surfaces a
+        # clear error instead of a device that appears added but has no data.
+        await self.get_state()
         _LOGGER.info("Connected to Tuya Cloud for OilClear %s", self._device_id)
 
     async def disconnect(self) -> None:
@@ -168,21 +170,24 @@ class OilClearCloudFountain:
     # -- State reading ---------------------------------------------------------
 
     async def get_state(self) -> OilClearState:
-        """Read and parse the device status from the Tuya Cloud."""
+        """Read and parse the device shadow properties from the Tuya Cloud."""
         cloud = self._ensure_connected()
-        response = await asyncio.to_thread(cloud.getstatus, self._device_id)
+        response = await asyncio.to_thread(cloud.cloudrequest, self._properties_url)
         if not response or not response.get("success"):
             msg = response.get("msg", "Unknown error") if response else "no response"
-            raise PetSnowyConnectionError(f"Failed to read cloud status: {msg}")
-        return OilClearState.from_status(response.get("result", []))
+            raise PetSnowyConnectionError(f"Failed to read cloud properties: {msg}")
+        properties = (response.get("result") or {}).get("properties", [])
+        return OilClearState.from_properties(properties)
 
     # -- Internal command helper -----------------------------------------------
 
     async def _send(self, code: str, value: Any) -> None:
-        """Send a single code/value command via the Tuya Cloud."""
+        """Issue a single code/value property via the Tuya Cloud thing model."""
         cloud = self._ensure_connected()
-        commands = {"commands": [{"code": code, "value": value}]}
-        response = await asyncio.to_thread(cloud.sendcommand, self._device_id, commands)
+        body = {"properties": json.dumps({code: value})}
+        response = await asyncio.to_thread(
+            cloud.cloudrequest, self._issue_url, "POST", body
+        )
         if not response or not response.get("success"):
             msg = response.get("msg", "Unknown error") if response else "no response"
             raise CommandError(f"Failed to send {code}={value!r}: {msg}")
@@ -213,9 +218,11 @@ class OilClearCloudFountain:
 
     # -- Settings --------------------------------------------------------------
 
-    async def set_work_mode(self, mode: str | WorkMode) -> None:
-        """Set the fountain operating mode ('normal' or 'night')."""
-        await self._send(OilClearCode.WORK_MODE, str(WorkMode(mode)))
+    async def set_work_mode(self, mode: str) -> None:
+        """Set the fountain operating mode ('normal' or 'intelligent')."""
+        if mode not in WORK_MODES:
+            raise ValueError(f"work_mode must be one of {WORK_MODES}")
+        await self._send(OilClearCode.WORK_MODE, mode)
 
     async def set_filter_reminder(self, days: int) -> None:
         """Set the filter replacement reminder period (0-30 days)."""

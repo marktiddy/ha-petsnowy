@@ -301,6 +301,13 @@
           "night": "Night"
         }
       },
+      "oilclear_work_mode": {
+        "name": "Work mode",
+        "state": {
+          "normal": "Normal",
+          "intelligent": "Intelligent"
+        }
+      },
       "purifier_mode": {
         "name": "Mode",
         "state": {

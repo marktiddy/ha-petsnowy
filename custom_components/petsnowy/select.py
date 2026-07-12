@@ -51,9 +51,9 @@ PURIFIER_SELECTS: tuple[PetSnowySelectDescription, ...] = (
 OILCLEAR_SELECTS: tuple[PetSnowySelectDescription, ...] = (
     PetSnowySelectDescription(
         key="work_mode",
-        translation_key="work_mode",
+        translation_key="oilclear_work_mode",
         icon="mdi:water-pump",
-        options=["normal", "night"],
+        options=["normal", "intelligent"],
         value_fn="work_mode",
         set_fn="set_work_mode",
     ),
