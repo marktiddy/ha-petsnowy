@@ -122,6 +122,8 @@ Follow the wizard prompts - you'll need a [Tuya IoT Platform](https://iot.tuya.c
 | **Select** | Work mode (normal/intelligent) |
 | **Options** | Volume unit (ml/oz) for the water-consumed sensor |
 
+> **Note:** The OilClear is polled through the Tuya Cloud and is power-managed, so there is a **delay between changing a control in Home Assistant and it taking effect** — the device applies queued commands only when it next wakes. Home Assistant holds the value you set and confirms it against later polls (reverting only if the device hasn't applied it within ~5 minutes), so the toggle won't snap back while the device catches up.
+
 ### PETSNOWY Air Purifier
 
 | Platform | Entities |
