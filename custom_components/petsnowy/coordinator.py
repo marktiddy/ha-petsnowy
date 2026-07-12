@@ -33,9 +33,11 @@ from .const import (
     CONF_PIR_GRACE_MINUTES,
     CONF_REGION,
     CONF_VERSION,
+    CONF_VOLUME_UNIT,
     CONF_WEIGHT_OFFSET,
     DEFAULT_PIR_GRACE_MINUTES,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_VOLUME_UNIT,
     DEVICE_TYPE_FEEDER,
     DEVICE_TYPE_FOUNTAIN,
     DEVICE_TYPE_LITTERBOX,
@@ -104,6 +106,7 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
                 entry.options.get(CONF_PIR_GRACE_MINUTES, DEFAULT_PIR_GRACE_MINUTES)
             )
         )
+        self.volume_unit: str = entry.options.get(CONF_VOLUME_UNIT, DEFAULT_VOLUME_UNIT)
 
         # PIR gate: all cat-behavior meta updates require a PIR-confirmed window.
         # The actual_excretions counter is incremented only for PIR-validated events.

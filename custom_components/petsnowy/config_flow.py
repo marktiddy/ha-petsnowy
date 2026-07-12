@@ -19,6 +19,10 @@ from homeassistant.helpers.selector import (
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
+    SelectOptionDict,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
 )
 
 from .const import (
@@ -32,15 +36,19 @@ from .const import (
     CONF_PIR_GRACE_MINUTES,
     CONF_REGION,
     CONF_VERSION,
+    CONF_VOLUME_UNIT,
     CONF_WEIGHT_OFFSET,
     DEFAULT_PIR_GRACE_MINUTES,
     DEFAULT_REGION,
     DEFAULT_VERSIONS,
+    DEFAULT_VOLUME_UNIT,
     DEVICE_TYPE_LITTERBOX,
     DEVICE_TYPE_OILCLEAR,
     DEVICE_TYPES,
     DOMAIN,
     TUYA_REGIONS,
+    VOLUME_UNIT_ML,
+    VOLUME_UNIT_OZ,
 )
 from .coordinator import build_device
 
@@ -179,13 +187,16 @@ class PetSnowyConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
 
 
 class PetSnowyOptionsFlow(OptionsFlow):
-    """Handle litterbox meta-sensor calibration options."""
+    """Handle per-device options (litterbox calibration, OilClear units)."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Manage weight offset and external motion sensor."""
-        if self.config_entry.data.get(CONF_DEVICE_TYPE) != DEVICE_TYPE_LITTERBOX:
+        """Dispatch to the option schema for the configured device type."""
+        device_type = self.config_entry.data.get(CONF_DEVICE_TYPE)
+        if device_type == DEVICE_TYPE_OILCLEAR:
+            return await self.async_step_oilclear(user_input)
+        if device_type != DEVICE_TYPE_LITTERBOX:
             return self.async_abort(reason="not_supported")
 
         if user_input is not None:
@@ -243,3 +254,33 @@ class PetSnowyOptionsFlow(OptionsFlow):
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)
+
+    async def async_step_oilclear(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Choose the volume unit for the OilClear drinking-data sensors."""
+        if user_input is not None:
+            return self.async_create_entry(
+                title="",
+                data={CONF_VOLUME_UNIT: user_input[CONF_VOLUME_UNIT]},
+            )
+
+        current = self.config_entry.options.get(CONF_VOLUME_UNIT, DEFAULT_VOLUME_UNIT)
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_VOLUME_UNIT, default=current): SelectSelector(
+                    SelectSelectorConfig(
+                        options=[
+                            SelectOptionDict(
+                                value=VOLUME_UNIT_ML, label="Millilitres (ml)"
+                            ),
+                            SelectOptionDict(
+                                value=VOLUME_UNIT_OZ, label="Fluid ounces (oz)"
+                            ),
+                        ],
+                        mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+            }
+        )
+        return self.async_show_form(step_id="oilclear", data_schema=schema)

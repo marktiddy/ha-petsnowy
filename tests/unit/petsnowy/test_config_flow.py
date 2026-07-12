@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
 
-from custom_components.petsnowy.config_flow import PetSnowyConfigFlow
+from custom_components.petsnowy.config_flow import (
+    PetSnowyConfigFlow,
+    PetSnowyOptionsFlow,
+)
 from custom_components.petsnowy.const import (
     CONF_ADDRESS,
     CONF_CLIENT_ID,
@@ -16,6 +19,7 @@ from custom_components.petsnowy.const import (
     CONF_LOCAL_KEY,
     CONF_REGION,
     CONF_VERSION,
+    CONF_VOLUME_UNIT,
     DEFAULT_VERSIONS,
     DEVICE_TYPE_FEEDER,
     DEVICE_TYPE_FOUNTAIN,
@@ -23,6 +27,7 @@ from custom_components.petsnowy.const import (
     DEVICE_TYPE_OILCLEAR,
     DEVICE_TYPE_PURIFIER,
     DOMAIN,
+    VOLUME_UNIT_OZ,
 )
 
 
@@ -347,3 +352,45 @@ class TestConfigFlowCloudStep:
 
         assert result["type"] == "form"
         assert result["errors"]["base"] == "cannot_connect"
+
+
+class TestOilClearOptionsFlow:
+    """Tests for the OilClear volume-unit options flow."""
+
+    def _entry(self, options: dict | None = None) -> MagicMock:
+        entry = MagicMock()
+        entry.data = {CONF_DEVICE_TYPE: DEVICE_TYPE_OILCLEAR}
+        entry.options = options or {}
+        return entry
+
+    @pytest.mark.asyncio
+    async def test_shows_volume_form(self) -> None:
+        """The OilClear options flow shows the volume-unit form."""
+        flow = PetSnowyOptionsFlow()
+        flow.hass = MagicMock()
+        # config_entry is a read-only property on OptionsFlow; patch it in.
+        with patch.object(
+            PetSnowyOptionsFlow,
+            "config_entry",
+            new_callable=PropertyMock,
+            return_value=self._entry(),
+        ):
+            result = await flow.async_step_init()
+        assert result["type"] == "form"
+        assert result["step_id"] == "oilclear"
+
+    @pytest.mark.asyncio
+    async def test_saves_volume_unit(self) -> None:
+        """Selecting a unit stores it in the entry options."""
+        flow = PetSnowyOptionsFlow()
+        flow.hass = MagicMock()
+        flow.async_create_entry = MagicMock(return_value={"type": "create_entry"})
+        with patch.object(
+            PetSnowyOptionsFlow,
+            "config_entry",
+            new_callable=PropertyMock,
+            return_value=self._entry(),
+        ):
+            await flow.async_step_init({CONF_VOLUME_UNIT: VOLUME_UNIT_OZ})
+        entry_data = flow.async_create_entry.call_args[1]["data"]
+        assert entry_data[CONF_VOLUME_UNIT] == VOLUME_UNIT_OZ

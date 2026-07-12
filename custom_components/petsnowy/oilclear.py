@@ -34,6 +34,27 @@ WORK_MODES: tuple[str, ...] = ("normal", "intelligent")
 DEFAULT_WORK_MODE = "normal"
 
 
+def _decode_water_record(raw: str) -> tuple[int, int]:
+    """Decode the ``water_record`` string into (drink_count, volume_ml) for today.
+
+    The value is an 8-char hex string of two big-endian uint16 halves, e.g.
+    ``"00070005"`` -> (7, 5). It is empty when there is no record yet.
+
+    NOTE: the volume half matches the app's "ml today"; the count half is a
+    best-guess and still to be confirmed against the app — if it turns out
+    reversed, swap the two return values here (the only place it's decided).
+    """
+    s = (raw or "").strip()
+    if len(s) < 8:
+        return (0, 0)
+    try:
+        count = int(s[0:4], 16)
+        volume_ml = int(s[4:8], 16)
+    except ValueError:
+        return (0, 0)
+    return (count, volume_ml)
+
+
 class OilClearCode:
     """Tuya status/command codes for the OilClear AI Water Fountain (PS-120).
 
@@ -55,6 +76,7 @@ class OilClearCode:
     RESET_WEIGHT = "reset_weight"  # momentary button (tare/calibrate the scale)
     CURR_WEIGHT = "curr_weight"  # current water weight (grams)
     LIGHT = "light"  # indicator light on/off
+    WATER_RECORD = "water_record"  # hex-encoded daily drink count + volume (ml)
 
 
 @dataclass(frozen=True)
@@ -72,6 +94,8 @@ class OilClearState:
     battery_capacity: int
     curr_weight: int
     light: bool
+    drink_count_today: int
+    water_consumed_ml: int
     raw: dict[str, Any]
 
     @classmethod
@@ -98,6 +122,8 @@ class OilClearState:
             v = values.get(code)
             return str(v) if v is not None else default
 
+        drink_count, water_ml = _decode_water_record(_str(OilClearCode.WATER_RECORD))
+
         return cls(
             switch=_bool(OilClearCode.SWITCH),
             work_mode=_str(OilClearCode.WORK_MODE, DEFAULT_WORK_MODE),
@@ -110,6 +136,8 @@ class OilClearState:
             battery_capacity=_int(OilClearCode.BATTERY_CAPACITY),
             curr_weight=_int(OilClearCode.CURR_WEIGHT),
             light=_bool(OilClearCode.LIGHT),
+            drink_count_today=drink_count,
+            water_consumed_ml=water_ml,
             raw=dict(values),
         )
 

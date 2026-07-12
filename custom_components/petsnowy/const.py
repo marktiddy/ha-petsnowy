@@ -21,6 +21,12 @@ CONF_CLIENT_SECRET = "client_secret"
 TUYA_REGIONS: tuple[str, ...] = ("eu", "us", "cn", "in")
 DEFAULT_REGION = "eu"
 
+# Volume unit for the OilClear drinking-data sensors (options flow).
+CONF_VOLUME_UNIT = "volume_unit"
+VOLUME_UNIT_ML = "ml"
+VOLUME_UNIT_OZ = "oz"
+DEFAULT_VOLUME_UNIT = VOLUME_UNIT_ML
+
 DEFAULT_PIR_GRACE_MINUTES = 5
 
 DEVICE_TYPE_LITTERBOX = "litterbox"

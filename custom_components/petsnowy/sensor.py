@@ -19,6 +19,7 @@ from homeassistant.const import (
     UnitOfMass,
     UnitOfTemperature,
     UnitOfTime,
+    UnitOfVolume,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -32,9 +33,27 @@ from .const import (
     DEVICE_TYPE_LITTERBOX,
     DEVICE_TYPE_OILCLEAR,
     DEVICE_TYPE_PURIFIER,
+    VOLUME_UNIT_OZ,
 )
 from .coordinator import PetSnowyCoordinator
 from .entity import PetSnowyEntity
+
+# 1 millilitre in US fluid ounces.
+_OZ_PER_ML = 0.0338140227
+
+
+def _volume_value(ml: int, unit: str) -> float | int:
+    """Convert a millilitre reading to the coordinator's configured unit."""
+    if unit == VOLUME_UNIT_OZ:
+        return round(ml * _OZ_PER_ML, 2)
+    return ml
+
+
+def _volume_unit(unit: str) -> str:
+    """Map the configured volume unit to its Home Assistant unit constant."""
+    if unit == VOLUME_UNIT_OZ:
+        return UnitOfVolume.FLUID_OUNCES
+    return UnitOfVolume.MILLILITERS
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -44,6 +63,8 @@ class PetSnowySensorDescription(SensorEntityDescription):
     value_fn: str | Callable[..., Any]
     restore_coordinator_attr: str | None = None
     restore_parser: Callable[[str], Any] | None = None
+    # Optional dynamic unit resolved from the coordinator (e.g. ml/oz option).
+    unit_fn: Callable[[PetSnowyCoordinator], str] | None = None
 
 
 LITTERBOX_SENSORS: tuple[PetSnowySensorDescription, ...] = (
@@ -354,6 +375,21 @@ OILCLEAR_SENSORS: tuple[PetSnowySensorDescription, ...] = (
         value_fn="pump_time",
     ),
     PetSnowySensorDescription(
+        key="water_consumed_today",
+        translation_key="water_consumed_today",
+        icon="mdi:cup-water",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda s, c: _volume_value(s.water_consumed_ml, c.volume_unit),
+        unit_fn=lambda c: _volume_unit(c.volume_unit),
+    ),
+    PetSnowySensorDescription(
+        key="drinks_today",
+        translation_key="drinks_today",
+        icon="mdi:counter",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn="drink_count_today",
+    ),
+    PetSnowySensorDescription(
         key="battery_charge_status",
         translation_key="battery_charge_status",
         icon="mdi:battery-charging",
@@ -449,6 +485,14 @@ class PetSnowySensor(PetSnowyEntity, RestoreEntity, SensorEntity):
             return
         if restored is not None:
             setattr(self.coordinator, desc.restore_coordinator_attr, restored)
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        """Return the unit, resolving a dynamic (config-driven) unit if set."""
+        unit_fn = self.entity_description.unit_fn
+        if unit_fn is not None:
+            return unit_fn(self.coordinator)
+        return self.entity_description.native_unit_of_measurement
 
     @property
     def native_value(self) -> Any:

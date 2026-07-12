@@ -71,8 +71,8 @@ class TestOilClearEntities:
     """Validate OilClear fountain entity descriptions are complete."""
 
     def test_has_sensors(self) -> None:
-        """OilClear exposes weight, battery, temperature, and filter sensors."""
-        assert len(_SENSORS_BY_TYPE[DEVICE_TYPE_OILCLEAR]) == 6
+        """OilClear exposes weight, battery, temperature, filter, and drinking sensors."""
+        assert len(_SENSORS_BY_TYPE[DEVICE_TYPE_OILCLEAR]) == 8
 
     def test_has_switches(self) -> None:
         """OilClear exposes power, heating, and light switches."""

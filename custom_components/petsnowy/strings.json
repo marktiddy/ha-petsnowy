@@ -50,10 +50,20 @@
           "external_motion_sensor": "Optional motion/PIR binary sensor placed inside the litterbox. When set, every PIR-validated meta sensor (Last use (actual), Use rate (actual), etc.) only counts device events that coincide with a confirmed cat-inside window.",
           "pir_grace_minutes": "How long after the PIR last turned off a device event can still count as PIR-confirmed. Raise this if your device reports excretions several minutes after the cat leaves; lower it if false positives leak through. 0 disables the grace window (PIR must be currently on)."
         }
+      },
+      "oilclear": {
+        "title": "OilClear options",
+        "description": "Choose the unit used for the drinking-data sensors.",
+        "data": {
+          "volume_unit": "Volume unit"
+        },
+        "data_description": {
+          "volume_unit": "Unit for the 'Water consumed today' sensor — millilitres or fluid ounces."
+        }
       }
     },
     "abort": {
-      "not_supported": "Options are only available for the Snow+ Litterbox."
+      "not_supported": "Options aren't available for this device."
     }
   },
   "entity": {
@@ -117,6 +127,12 @@
       },
       "battery_charge_status": {
         "name": "Charge status"
+      },
+      "water_consumed_today": {
+        "name": "Water consumed today"
+      },
+      "drinks_today": {
+        "name": "Drinks today"
       },
       "tvoc": {
         "name": "TVOC"

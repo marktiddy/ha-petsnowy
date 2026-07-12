@@ -12,6 +12,7 @@ from custom_components.petsnowy.oilclear import (
     OilClearCloudFountain,
     OilClearCode,
     OilClearState,
+    _decode_water_record,
 )
 from custom_components.petsnowy.switch import OILCLEAR_SWITCHES, PetSnowySwitch
 
@@ -27,6 +28,7 @@ FULL_PROPERTIES = [
     {"code": "battery_capacity", "value": 100},
     {"code": "curr_weight", "value": 3036},
     {"code": "light", "value": True},
+    {"code": "water_record", "value": "00070005"},
 ]
 
 DEVICE_ID = "dev123"
@@ -70,6 +72,52 @@ class TestOilClearState:
         assert state.work_mode == "normal"
         assert state.curr_weight == 0
         assert state.battery_charge_status == ""
+        assert state.drink_count_today == 0
+        assert state.water_consumed_ml == 0
+
+    def test_decodes_drinking_data(self) -> None:
+        """water_record decodes into today's drink count and volume."""
+        state = OilClearState.from_properties(FULL_PROPERTIES)
+        assert state.drink_count_today == 7
+        assert state.water_consumed_ml == 5
+
+
+class TestWaterRecordDecode:
+    """Validate the water_record hex decoder."""
+
+    def test_two_uint16_halves(self) -> None:
+        """An 8-char hex string splits into two big-endian uint16 halves."""
+        assert _decode_water_record("0005000C") == (5, 12)
+        assert _decode_water_record("00070005") == (7, 5)
+
+    def test_empty_is_zero(self) -> None:
+        """An empty or short record decodes to zeros."""
+        assert _decode_water_record("") == (0, 0)
+        assert _decode_water_record("00") == (0, 0)
+
+    def test_invalid_hex_is_zero(self) -> None:
+        """Non-hex content decodes to zeros rather than raising."""
+        assert _decode_water_record("zzzzzzzz") == (0, 0)
+
+
+class TestVolumeConversion:
+    """Validate the ml/oz conversion used by the water-consumed sensor."""
+
+    def test_ml_passthrough(self) -> None:
+        """Millilitres are returned unchanged."""
+        from custom_components.petsnowy.const import VOLUME_UNIT_ML
+        from custom_components.petsnowy.sensor import _volume_unit, _volume_value
+
+        assert _volume_value(100, VOLUME_UNIT_ML) == 100
+        assert _volume_unit(VOLUME_UNIT_ML) == "mL"
+
+    def test_oz_conversion(self) -> None:
+        """Millilitres convert to fluid ounces, rounded to 2 dp."""
+        from custom_components.petsnowy.const import VOLUME_UNIT_OZ
+        from custom_components.petsnowy.sensor import _volume_unit, _volume_value
+
+        assert _volume_value(100, VOLUME_UNIT_OZ) == 3.38
+        assert _volume_unit(VOLUME_UNIT_OZ) == "fl. oz."
 
 
 class TestOilClearCommands:

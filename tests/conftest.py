@@ -106,6 +106,7 @@ MOCK_OILCLEAR_PROPERTIES: list[dict[str, Any]] = [
     {"code": "battery_capacity", "value": 100},
     {"code": "curr_weight", "value": 3036},
     {"code": "light", "value": True},
+    {"code": "water_record", "value": "00070005"},
 ]
 
 MOCK_PURIFIER_DPS: dict[str, Any] = {
