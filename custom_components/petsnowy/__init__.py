@@ -12,6 +12,7 @@ from homeassistant.helpers import entity_registry as er
 from .const import (
     CONF_DEVICE_ID,
     CONF_DEVICE_TYPE,
+    DEVICE_TYPE_OILCLEAR,
     DEVICE_TYPE_PURIFIER,
     DOMAIN,
     PLATFORMS,
@@ -20,18 +21,30 @@ from .coordinator import PetSnowyCoordinator
 
 PetSnowyConfigEntry: TypeAlias = ConfigEntry[PetSnowyCoordinator]
 
-# Entity keys replaced by the fan entity in the purifier fan refactor.
-_PURIFIER_ORPHANED_ENTITIES: list[tuple[str, str]] = [
-    ("switch", "purifier_power"),
-    ("select", "fan_speed"),
-    ("select", "purifier_mode"),
-]
+# Entity keys that older versions of the integration exposed but no longer do,
+# keyed by device type. Removed on setup so they don't linger in the registry.
+_ORPHANED_ENTITIES: dict[str, list[tuple[str, str]]] = {
+    # Purifier: switch/selects replaced by the fan entity.
+    DEVICE_TYPE_PURIFIER: [
+        ("switch", "purifier_power"),
+        ("select", "fan_speed"),
+        ("select", "purifier_mode"),
+    ],
+    # OilClear: controls trimmed after the cloud rework.
+    DEVICE_TYPE_OILCLEAR: [
+        ("switch", "power"),
+        ("switch", "oilclear_light"),
+        ("button", "reset_pump"),
+        ("sensor", "pump_time"),
+        ("sensor", "drinks_today"),
+        ("number", "filter_reminder"),
+    ],
+}
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: PetSnowyConfigEntry) -> bool:
     """Set up PetSnowy from a config entry."""
-    if entry.data.get(CONF_DEVICE_TYPE) == DEVICE_TYPE_PURIFIER:
-        _cleanup_orphaned_purifier_entities(hass, entry)
+    _cleanup_orphaned_entities(hass, entry)
 
     coordinator = PetSnowyCoordinator(hass, entry)
     try:
@@ -54,13 +67,14 @@ async def _async_update_listener(
     await hass.config_entries.async_reload(entry.entry_id)
 
 
-def _cleanup_orphaned_purifier_entities(
-    hass: HomeAssistant, entry: PetSnowyConfigEntry
-) -> None:
-    """Remove legacy purifier entities replaced by the fan entity."""
+def _cleanup_orphaned_entities(hass: HomeAssistant, entry: PetSnowyConfigEntry) -> None:
+    """Remove entities this device type no longer exposes from the registry."""
+    orphans = _ORPHANED_ENTITIES.get(entry.data.get(CONF_DEVICE_TYPE, ""))
+    if not orphans:
+        return
     registry = er.async_get(hass)
     device_id = entry.data[CONF_DEVICE_ID]
-    for platform, key in _PURIFIER_ORPHANED_ENTITIES:
+    for platform, key in orphans:
         unique_id = f"{device_id}_{key}"
         entity_id = registry.async_get_entity_id(platform, DOMAIN, unique_id)
         if entity_id is not None:

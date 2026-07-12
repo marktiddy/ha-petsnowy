@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from homeassistant.util import dt as dt_util
 
 from custom_components.petsnowy.const import CONF_DEVICE_ID
+from custom_components.petsnowy.coordinator import PetSnowyCoordinator
 from custom_components.petsnowy.oilclear import (
     OilClearCloudFountain,
     OilClearCode,
@@ -241,7 +244,7 @@ class TestOilClearOptimisticSwitch:
         coordinator.device = MagicMock()
         coordinator.device.set_heating = AsyncMock()
         coordinator.async_request_refresh = AsyncMock()
-        coordinator.async_set_updated_data = MagicMock()
+        coordinator.async_set_pending = MagicMock()
         coordinator.config_entry.data = {CONF_DEVICE_ID: "dev123"}
         return coordinator
 
@@ -250,18 +253,63 @@ class TestOilClearOptimisticSwitch:
         return PetSnowySwitch(coordinator, desc)
 
     @pytest.mark.asyncio
-    async def test_turn_on_is_optimistic(self) -> None:
-        """Toggling heating updates state optimistically and skips the poll."""
-        state = OilClearState.from_properties([{"code": "heating", "value": False}])
+    async def test_turn_off_holds_pending_and_skips_poll(self) -> None:
+        """Toggling heating registers a pending value instead of re-polling."""
+        state = OilClearState.from_properties([{"code": "heating", "value": True}])
         coordinator = self._coordinator(state)
         switch = self._heating_switch(coordinator)
 
-        await switch.async_turn_on()
+        await switch.async_turn_off()
 
-        coordinator.device.set_heating.assert_awaited_once_with(True)
+        coordinator.device.set_heating.assert_awaited_once_with(False)
         coordinator.async_request_refresh.assert_not_called()
-        coordinator.async_set_updated_data.assert_called_once()
-        new_state = coordinator.async_set_updated_data.call_args[0][0]
-        assert new_state.heating is True
+        coordinator.async_set_pending.assert_called_once_with("heating", False)
         # Renders as a normal toggle, not an assumed-state pair of buttons.
         assert switch.assumed_state is False
+
+
+class TestPendingOverlay:
+    """The coordinator holds a requested value until the device confirms it."""
+
+    def _coordinator(self) -> PetSnowyCoordinator:
+        # Build a bare coordinator without running __init__ (which needs hass);
+        # only the overlay state is required for these tests.
+        coordinator = object.__new__(PetSnowyCoordinator)
+        coordinator._pending_overlay = {}
+        return coordinator
+
+    def _state(self, heating: bool) -> OilClearState:
+        return OilClearState.from_properties([{"code": "heating", "value": heating}])
+
+    def test_holds_requested_value_until_confirmed(self) -> None:
+        """While the device still reports the old value, the request is held."""
+        coordinator = self._coordinator()
+        future = dt_util.utcnow() + timedelta(minutes=5)
+        coordinator._pending_overlay = {"heating": (False, future)}
+
+        result = coordinator._apply_pending_overlay(self._state(heating=True))
+
+        assert result.heating is False  # requested value held
+        assert "heating" in coordinator._pending_overlay  # still waiting
+
+    def test_clears_pending_once_device_confirms(self) -> None:
+        """When the device reports the requested value, the pending entry clears."""
+        coordinator = self._coordinator()
+        future = dt_util.utcnow() + timedelta(minutes=5)
+        coordinator._pending_overlay = {"heating": (False, future)}
+
+        result = coordinator._apply_pending_overlay(self._state(heating=False))
+
+        assert result.heating is False
+        assert "heating" not in coordinator._pending_overlay  # confirmed
+
+    def test_gives_up_after_timeout(self) -> None:
+        """After the timeout, the device's actual value wins again."""
+        coordinator = self._coordinator()
+        past = dt_util.utcnow() - timedelta(seconds=1)
+        coordinator._pending_overlay = {"heating": (False, past)}
+
+        result = coordinator._apply_pending_overlay(self._state(heating=True))
+
+        assert result.heating is True  # reverted to device truth
+        assert "heating" not in coordinator._pending_overlay  # gave up

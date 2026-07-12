@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import logging
 from collections import deque
 from collections.abc import Callable, Mapping
@@ -107,6 +108,14 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
             )
         )
         self.volume_unit: str = entry.options.get(CONF_VOLUME_UNIT, DEFAULT_VOLUME_UNIT)
+
+        # Pending optimistic commands, keyed by state attribute -> (value, expiry).
+        # Used by cloud/battery devices (OilClear) that apply commands only once
+        # awake: the requested value is held and re-applied on each poll until
+        # the device reports it or the timeout elapses, avoiding a mid-flight
+        # snap-back while the device catches up.
+        self._pending_overlay: dict[str, tuple[Any, datetime]] = {}
+        self._pending_ttl = timedelta(minutes=5)
 
         # PIR gate: all cat-behavior meta updates require a PIR-confirmed window.
         # The actual_excretions counter is incremented only for PIR-validated events.
@@ -223,6 +232,44 @@ class PetSnowyCoordinator(DataUpdateCoordinator[Any]):
         if self.device_type == DEVICE_TYPE_LITTERBOX:
             self._process_litterbox_meta(state)
 
+        return self._apply_pending_overlay(state)
+
+    def async_set_pending(self, attr: str, value: Any) -> None:
+        """Optimistically hold a just-issued command until the device confirms it.
+
+        Registers the requested value and immediately reflects it in the current
+        state so the UI updates at once; subsequent polls keep re-applying it
+        (see `_apply_pending_overlay`) until the device reports the new value or
+        the timeout elapses.
+        """
+        self._pending_overlay[attr] = (value, dt_util.utcnow() + self._pending_ttl)
+        if self.data is not None and dataclasses.is_dataclass(self.data):
+            try:
+                self.async_set_updated_data(
+                    dataclasses.replace(self.data, **{attr: value})
+                )
+            except TypeError:
+                self._pending_overlay.pop(attr, None)
+
+    def _apply_pending_overlay(self, state: Any) -> Any:
+        """Overlay unconfirmed pending commands onto a freshly polled state.
+
+        For each pending attribute: drop it once the device reports the desired
+        value (confirmed) or the timeout elapses (gave up); otherwise keep the
+        requested value visible so HA doesn't revert while the device catches up.
+        """
+        if not self._pending_overlay or not dataclasses.is_dataclass(state):
+            return state
+        now = dt_util.utcnow()
+        for attr in list(self._pending_overlay):
+            desired, expiry = self._pending_overlay[attr]
+            if getattr(state, attr, None) == desired or now >= expiry:
+                del self._pending_overlay[attr]
+            else:
+                try:
+                    state = dataclasses.replace(state, **{attr: desired})
+                except TypeError:
+                    del self._pending_overlay[attr]
         return state
 
     def _process_litterbox_meta(self, state: Any) -> None:
