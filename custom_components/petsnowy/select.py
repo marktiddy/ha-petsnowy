@@ -24,6 +24,8 @@ class PetSnowySelectDescription(SelectEntityDescription):
 
     value_fn: str
     set_fn: str
+    # Optimistically hold the requested option until the next poll.
+    optimistic: bool = False
 
 
 FOUNTAIN_SELECTS: tuple[PetSnowySelectDescription, ...] = (
@@ -56,6 +58,7 @@ OILCLEAR_SELECTS: tuple[PetSnowySelectDescription, ...] = (
         options=["normal", "intelligent"],
         value_fn="work_mode",
         set_fn="set_work_mode",
+        optimistic=True,
     ),
 )
 
@@ -101,5 +104,9 @@ class PetSnowySelect(PetSnowyEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
-        await getattr(self.coordinator.device, self.entity_description.set_fn)(option)
-        await self.coordinator.async_request_refresh()
+        desc = self.entity_description
+        await getattr(self.coordinator.device, desc.set_fn)(option)
+        if desc.optimistic:
+            self._set_optimistic_state(desc.value_fn, option)
+        else:
+            await self.coordinator.async_request_refresh()

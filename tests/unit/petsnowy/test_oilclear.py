@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 import json
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from custom_components.petsnowy.const import CONF_DEVICE_ID
 from custom_components.petsnowy.oilclear import (
     OilClearCloudFountain,
     OilClearCode,
     OilClearState,
 )
+from custom_components.petsnowy.switch import OILCLEAR_SWITCHES, PetSnowySwitch
 
 FULL_PROPERTIES = [
     {"code": "switch", "value": True},
@@ -175,3 +177,42 @@ class TestOilClearCommands:
         )
         with pytest.raises(CommandError):
             await dev.turn_on()
+
+
+class TestOilClearOptimisticSwitch:
+    """The OilClear controls hold the requested state instead of snapping back.
+
+    The device queues commands and only reports them once awake, so an
+    immediate poll would read the stale value; the switch instead updates the
+    coordinator optimistically and marks itself assumed-state.
+    """
+
+    def _coordinator(self, state: OilClearState) -> MagicMock:
+        coordinator = MagicMock()
+        coordinator.data = state
+        coordinator.device = MagicMock()
+        coordinator.device.set_heating = AsyncMock()
+        coordinator.async_request_refresh = AsyncMock()
+        coordinator.async_set_updated_data = MagicMock()
+        coordinator.config_entry.data = {CONF_DEVICE_ID: "dev123"}
+        return coordinator
+
+    def _heating_switch(self, coordinator: MagicMock) -> PetSnowySwitch:
+        desc = next(d for d in OILCLEAR_SWITCHES if d.key == "heating")
+        return PetSnowySwitch(coordinator, desc)
+
+    @pytest.mark.asyncio
+    async def test_turn_on_is_optimistic(self) -> None:
+        """Toggling heating updates state optimistically and skips the poll."""
+        state = OilClearState.from_properties([{"code": "heating", "value": False}])
+        coordinator = self._coordinator(state)
+        switch = self._heating_switch(coordinator)
+
+        await switch.async_turn_on()
+
+        coordinator.device.set_heating.assert_awaited_once_with(True)
+        coordinator.async_request_refresh.assert_not_called()
+        coordinator.async_set_updated_data.assert_called_once()
+        new_state = coordinator.async_set_updated_data.call_args[0][0]
+        assert new_state.heating is True
+        assert switch.assumed_state is True

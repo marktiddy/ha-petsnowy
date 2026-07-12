@@ -25,6 +25,8 @@ class PetSnowyNumberDescription(NumberEntityDescription):
 
     value_fn: str
     set_fn: str
+    # Optimistically hold the requested value until the next poll.
+    optimistic: bool = False
 
 
 LITTERBOX_NUMBERS: tuple[PetSnowyNumberDescription, ...] = (
@@ -66,6 +68,7 @@ OILCLEAR_NUMBERS: tuple[PetSnowyNumberDescription, ...] = (
         native_unit_of_measurement=UnitOfTime.DAYS,
         value_fn="filter_life",
         set_fn="set_filter_reminder",
+        optimistic=True,
     ),
 )
 
@@ -111,7 +114,9 @@ class PetSnowyNumber(PetSnowyEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         """Set the number value."""
-        await getattr(self.coordinator.device, self.entity_description.set_fn)(
-            int(value)
-        )
-        await self.coordinator.async_request_refresh()
+        desc = self.entity_description
+        await getattr(self.coordinator.device, desc.set_fn)(int(value))
+        if desc.optimistic:
+            self._set_optimistic_state(desc.value_fn, int(value))
+        else:
+            await self.coordinator.async_request_refresh()

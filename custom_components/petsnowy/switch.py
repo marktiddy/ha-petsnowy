@@ -30,6 +30,9 @@ class PetSnowySwitchDescription(SwitchEntityDescription):
     # For on/off method pattern: on_method(), off_method()
     on_fn: str | None = None
     off_fn: str | None = None
+    # Optimistically hold the requested state until the next poll (for cloud/
+    # battery devices that apply commands only once awake).
+    optimistic: bool = False
 
 
 LITTERBOX_SWITCHES: tuple[PetSnowySwitchDescription, ...] = (
@@ -110,6 +113,7 @@ OILCLEAR_SWITCHES: tuple[PetSnowySwitchDescription, ...] = (
         value_fn="switch",
         on_fn="turn_on",
         off_fn="turn_off",
+        optimistic=True,
     ),
     PetSnowySwitchDescription(
         key="heating",
@@ -117,6 +121,7 @@ OILCLEAR_SWITCHES: tuple[PetSnowySwitchDescription, ...] = (
         icon="mdi:radiator",
         value_fn="heating",
         set_fn="set_heating",
+        optimistic=True,
     ),
     PetSnowySwitchDescription(
         key="oilclear_light",
@@ -124,6 +129,7 @@ OILCLEAR_SWITCHES: tuple[PetSnowySwitchDescription, ...] = (
         icon="mdi:lightbulb",
         value_fn="light",
         set_fn="set_light",
+        optimistic=True,
     ),
 )
 
@@ -168,6 +174,7 @@ class PetSnowySwitch(PetSnowyEntity, SwitchEntity):
     ) -> None:
         super().__init__(coordinator, description.key)
         self.entity_description = description
+        self._attr_assumed_state = description.optimistic
 
     @property
     def is_on(self) -> bool | None:
@@ -177,20 +184,24 @@ class PetSnowySwitch(PetSnowyEntity, SwitchEntity):
             return None
         return getattr(state, self.entity_description.value_fn, None)
 
+    async def _async_set(self, value: bool) -> None:
+        """Issue the command, then optimistically hold or poll for the result."""
+        desc = self.entity_description
+        if value and desc.on_fn:
+            await getattr(self.coordinator.device, desc.on_fn)()
+        elif not value and desc.off_fn:
+            await getattr(self.coordinator.device, desc.off_fn)()
+        elif desc.set_fn:
+            await getattr(self.coordinator.device, desc.set_fn)(value)
+        if desc.optimistic:
+            self._set_optimistic_state(desc.value_fn, value)
+        else:
+            await self.coordinator.async_request_refresh()
+
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
-        desc = self.entity_description
-        if desc.set_fn:
-            await getattr(self.coordinator.device, desc.set_fn)(True)
-        elif desc.on_fn:
-            await getattr(self.coordinator.device, desc.on_fn)()
-        await self.coordinator.async_request_refresh()
+        await self._async_set(True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
-        desc = self.entity_description
-        if desc.set_fn:
-            await getattr(self.coordinator.device, desc.set_fn)(False)
-        elif desc.off_fn:
-            await getattr(self.coordinator.device, desc.off_fn)()
-        await self.coordinator.async_request_refresh()
+        await self._async_set(False)

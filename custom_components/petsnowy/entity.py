@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import dataclasses
+from typing import Any
+
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -18,6 +21,23 @@ class PetSnowyEntity(CoordinatorEntity[PetSnowyCoordinator]):
         super().__init__(coordinator)
         device_id = coordinator.config_entry.data[CONF_DEVICE_ID]
         self._attr_unique_id = f"{device_id}_{key}"
+
+    def _set_optimistic_state(self, attr: str, value: Any) -> None:
+        """Optimistically reflect a just-issued command in the coordinator state.
+
+        Cloud/battery devices (the OilClear) queue commands and only report the
+        new value once they next wake, so an immediate poll reads the stale
+        value and the UI snaps back. Patch the cached state instead and let the
+        next scheduled poll reconcile it with what the device actually did.
+        """
+        data = self.coordinator.data
+        if data is None or not dataclasses.is_dataclass(data):
+            return
+        try:
+            new_data = dataclasses.replace(data, **{attr: value})
+        except TypeError:
+            return
+        self.coordinator.async_set_updated_data(new_data)
 
     @property
     def device_info(self) -> DeviceInfo:
