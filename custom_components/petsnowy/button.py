@@ -107,12 +107,6 @@ OILCLEAR_BUTTONS: tuple[PetSnowyButtonDescription, ...] = (
         press_fn="reset_filter",
     ),
     PetSnowyButtonDescription(
-        key="reset_pump",
-        translation_key="reset_pump",
-        icon="mdi:pump",
-        press_fn="reset_pump",
-    ),
-    PetSnowyButtonDescription(
         key="oilclear_calibrate_weight",
         translation_key="calibrate_weight",
         icon="mdi:scale-balance",

@@ -228,11 +228,11 @@ class TestOilClearCommands:
 
 
 class TestOilClearOptimisticSwitch:
-    """The OilClear controls hold the requested state instead of snapping back.
+    """The OilClear heating switch holds the requested state instead of snapping back.
 
     The device queues commands and only reports them once awake, so an
     immediate poll would read the stale value; the switch instead updates the
-    coordinator optimistically and marks itself assumed-state.
+    coordinator optimistically (while still rendering as a normal toggle).
     """
 
     def _coordinator(self, state: OilClearState) -> MagicMock:
@@ -263,4 +263,5 @@ class TestOilClearOptimisticSwitch:
         coordinator.async_set_updated_data.assert_called_once()
         new_state = coordinator.async_set_updated_data.call_args[0][0]
         assert new_state.heating is True
-        assert switch.assumed_state is True
+        # Renders as a normal toggle, not an assumed-state pair of buttons.
+        assert switch.assumed_state is False

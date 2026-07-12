@@ -71,20 +71,20 @@ class TestOilClearEntities:
     """Validate OilClear fountain entity descriptions are complete."""
 
     def test_has_sensors(self) -> None:
-        """OilClear exposes weight, battery, temperature, filter, and drinking sensors."""
-        assert len(_SENSORS_BY_TYPE[DEVICE_TYPE_OILCLEAR]) == 8
+        """OilClear exposes weight, battery, temperature, filter, and water-used sensors."""
+        assert len(_SENSORS_BY_TYPE[DEVICE_TYPE_OILCLEAR]) == 6
 
     def test_has_switches(self) -> None:
-        """OilClear exposes power, heating, and light switches."""
-        assert len(_SWITCHES_BY_TYPE[DEVICE_TYPE_OILCLEAR]) == 3
+        """OilClear exposes only the heating switch."""
+        assert len(_SWITCHES_BY_TYPE[DEVICE_TYPE_OILCLEAR]) == 1
 
     def test_has_buttons(self) -> None:
-        """OilClear exposes filter/pump reset and weight calibration buttons."""
-        assert len(_BUTTONS_BY_TYPE[DEVICE_TYPE_OILCLEAR]) == 3
+        """OilClear exposes filter reset and weight calibration buttons."""
+        assert len(_BUTTONS_BY_TYPE[DEVICE_TYPE_OILCLEAR]) == 2
 
-    def test_has_numbers(self) -> None:
-        """OilClear exposes number entities."""
-        assert len(_NUMBERS_BY_TYPE[DEVICE_TYPE_OILCLEAR]) == 1
+    def test_has_no_numbers(self) -> None:
+        """OilClear has no adjustable number controls."""
+        assert DEVICE_TYPE_OILCLEAR not in _NUMBERS_BY_TYPE
 
     def test_has_selects(self) -> None:
         """OilClear exposes the work-mode select."""

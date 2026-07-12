@@ -116,12 +116,11 @@ Follow the wizard prompts - you'll need a [Tuya IoT Platform](https://iot.tuya.c
 
 | Platform | Entities |
 |----------|----------|
-| **Sensor** | Water weight (g), water temperature (°C), battery (%), filter days remaining, pump cleaning days, water consumed today (ml/oz), drinks today, charge status (diagnostic) |
-| **Switch** | Power, heating, indicator light |
-| **Button** | Reset filter, reset pump, calibrate weight |
-| **Number** | Filter reminder (0–30 days) |
+| **Sensor** | Water weight (g), water temperature (°C), battery (%), filter days remaining, water consumed today (ml/oz), charge status (diagnostic) |
+| **Switch** | Heating |
+| **Button** | Reset filter, calibrate weight |
 | **Select** | Work mode (normal/intelligent) |
-| **Options** | Volume unit (ml/oz) for the drinking-data sensors |
+| **Options** | Volume unit (ml/oz) for the water-consumed sensor |
 
 ### PETSNOWY Air Purifier
 

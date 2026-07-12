@@ -107,28 +107,11 @@ FOUNTAIN_SWITCHES: tuple[PetSnowySwitchDescription, ...] = (
 
 OILCLEAR_SWITCHES: tuple[PetSnowySwitchDescription, ...] = (
     PetSnowySwitchDescription(
-        key="power",
-        translation_key="power",
-        icon="mdi:power",
-        value_fn="switch",
-        on_fn="turn_on",
-        off_fn="turn_off",
-        optimistic=True,
-    ),
-    PetSnowySwitchDescription(
         key="heating",
         translation_key="heating",
         icon="mdi:radiator",
         value_fn="heating",
         set_fn="set_heating",
-        optimistic=True,
-    ),
-    PetSnowySwitchDescription(
-        key="oilclear_light",
-        translation_key="light",
-        icon="mdi:lightbulb",
-        value_fn="light",
-        set_fn="set_light",
         optimistic=True,
     ),
 )
@@ -174,7 +157,6 @@ class PetSnowySwitch(PetSnowyEntity, SwitchEntity):
     ) -> None:
         super().__init__(coordinator, description.key)
         self.entity_description = description
-        self._attr_assumed_state = description.optimistic
 
     @property
     def is_on(self) -> bool | None:

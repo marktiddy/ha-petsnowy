@@ -367,27 +367,12 @@ OILCLEAR_SENSORS: tuple[PetSnowySensorDescription, ...] = (
         value_fn="filter_days",
     ),
     PetSnowySensorDescription(
-        key="pump_time",
-        translation_key="pump_time",
-        native_unit_of_measurement=UnitOfTime.DAYS,
-        icon="mdi:pump",
-        state_class=SensorStateClass.MEASUREMENT,
-        value_fn="pump_time",
-    ),
-    PetSnowySensorDescription(
         key="water_consumed_today",
         translation_key="water_consumed_today",
         icon="mdi:cup-water",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda s, c: _volume_value(s.water_consumed_ml, c.volume_unit),
         unit_fn=lambda c: _volume_unit(c.volume_unit),
-    ),
-    PetSnowySensorDescription(
-        key="drinks_today",
-        translation_key="drinks_today",
-        icon="mdi:counter",
-        state_class=SensorStateClass.MEASUREMENT,
-        value_fn="drink_count_today",
     ),
     PetSnowySensorDescription(
         key="battery_charge_status",
